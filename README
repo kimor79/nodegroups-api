@@ -1,0 +1,30 @@
+Often times, we have scripts and/or apps that need a list of hosts. Many times, that list is hardcoded in the program. Anytime the list changes, the program needs to be updated and deployed. This is time-consuming and error-prone.
+
+Enter nodegroups!
+
+Nodegroups is a central location to store groups of nodes. Rather than hardcoding lists in code, you maintain the list in nodegroups and have the code query for that particular nodegroup.
+
+Useful links:
+
+http://en.wikipedia.org/wiki/Set_theory
+http://en.wikipedia.org/wiki/Venn_diagram
+
+Definitions:
+
+    * Node - A singular abstract basic unit, most often a hostname or an IP address.
+          o A node may only be a valid IP address (v4 or v6) or contain alphanumeric characters, dots, dashes or underscores.
+    * Nodegroup - A collection of entities (nodes, nodegroups, functions).
+          o A nodegroup name may only contain alphanumeric characters, dots, dashes or underscores.
+          o To reference a nodegroup in an expression or function, prefix the name with an '@': @foo.
+    * Function - A subroutine which evaluates all elements within and returns a list of nodes.
+          o &diff() - The set of nodes in the first element that are not present in any other element of the function.
+          o &union() - The set of the nodes from all elements of the function.
+          o &intersect() - The set of nodes common to all elements of the function.
+          o &regexp() - The set of nodes which match the given regexp (first element).
+          o Function elements may be individual nodes, nodegroups or functions.
+          o Elements are separated by a single comma: &union(@foo, @bar).
+    * Expression - A combination of entities used to define a nodegroup.
+          o An entity may be excluded by prefixing the entity with an '!': !foo.
+          o An entity may be commented out by prefixing the entity with a '#': #foo.
+          o Exclusions and comments within functions are local to that function only.
+
