@@ -1,0 +1,23 @@
+<?php
+
+require('api.class');
+
+class OpsApiNodegroups extends OpsApi {
+
+	/**
+	 * Override default format to not expect associative arrays
+	 */
+	public function formatOutput_list($data) {
+		if(is_array($data['records'][0])) {
+			$output = array();
+			foreach($data['records'] as $datum) {
+				$output[] = $datum['nodegroup'];
+			}
+
+			return implode("\n", $output);
+		}
+
+		return implode("\n", $data['records']);
+	}
+}
+?>

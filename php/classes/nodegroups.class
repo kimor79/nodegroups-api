@@ -1,0 +1,932 @@
+<?php
+
+class NodeGroups {
+
+	/**
+	 * Sanitize an expression (strip whitespace, etc)
+	 * @param string $input Expression
+	 * @return string Sanitized expression
+	 */
+	public function sanitizeExpression($input = NULL) {
+		$expr = str_replace("\n", ',', $input);
+		$expr = str_replace(', ', ',', $expr);
+		$expr = str_replace(',,', ',', $expr);
+		$expr = str_replace('( ', '(', $expr);
+		$expr = str_replace(' )', ')', $expr);
+
+		$expr = ltrim($expr, ',');
+		$expr = rtrim($expr, ',');
+
+		return $expr;
+	}
+
+	/**
+	 * Ensure nodegroup name only contains valid characters
+	 * @param string $input Name
+	 * @return bool
+	 */
+	public function validateNodegroupName($input = NULL) {
+		if(is_null($input)) {
+			return false;
+		}
+
+		if(preg_match('/^[-\w\.]+$/i', $input)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Ensure node name only contains valid characters
+	 * @param string $input Name
+	 * @return bool
+	 */
+	public function validateNodeName($input = NULL) {
+		if(is_null($input)) {
+			return false;
+		}
+
+		// Allow IP address as node names
+		if(filter_var($input, FILTER_VALIDATE_IP)) {
+			return true;
+		}
+
+		if(preg_match('/^[-\w\.]+$/i', $input)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Ensure expression is valid
+	 * Will return true if &regexp( is anywhere in expression
+	 * @param string $input Expression
+	 * @return bool
+	 */
+	public function validateExpression($input = NULL) {
+		$has_regex = strpos($input, '&regex');
+		if($has_regex !== false) {
+			return true;
+		}
+
+		$input = $this->sanitizeExpression($input);
+
+		$tests = 3;
+		$pass = 0;
+
+		// Invalid characters
+		if(preg_match('/^[-\w\.\(\)\&\@\,\!\#]+$/i', $input)) {
+			$pass++;
+		} else {
+			return false;
+		}
+
+		// Unbalanced parens
+		$open_parens = substr_count($input, '(');
+		$close_parens = substr_count($input, ')');
+
+		if($open_parens === $close_parens) {
+			$pass++;
+		} else {
+			return false;
+		}
+
+		// Parens without functions and visa versa
+		$ampersands = substr_count($input, '&');
+
+		if($ampersands === $open_parens) {
+			$pass++;
+		} else {
+			return false;
+		}
+
+		if(preg_match_all('/[^-\w\.][^-\w\.]/', $input, $double_matches)) {
+			foreach($double_matches[0] as $double) {
+				switch($double) {
+					case ',#':
+					case ',!':
+					case ',&':
+					case '!&':
+					case ',@':
+					case '!@':
+					case '#!':
+					case '#&':
+					case '#@':
+					case '(#':
+					case '(&':
+					case '(@':
+					case '(!':
+					case '),':
+					case '))':
+						break;
+					default:
+						return false;
+				}
+			}
+		}
+
+		// Check for invalid function names
+		if(strpos($input, '&') !== false) {
+			$func_total = preg_match_all('/\&[^\(]*\(/', $input, $func_matches);
+			if($func_total == 0) {
+				return false;
+			}
+			foreach($func_matches[0] as $t_func) {
+				switch($t_func) {
+					case '&diff(':
+					case '&regex(':
+					case '&regexp(':
+					case '&intersect(':
+					case '&union(':
+						break;
+					default:
+						return false;
+				}
+			}
+		}
+
+		if($tests === $pass) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Return event details
+	 * @param array $params Associative array of fields/values to search for
+	 * @param array $fields Fields to include in result
+	 * @return array Array of events(s)
+	 */
+	public function getEvents($search = array(), $fields = array()) {
+		$details = array();
+		$fields_as_keys = array();
+		$query_opts = array();
+		$query_str = '';
+
+		if(!empty($fields)) {
+			$fields_as_keys = array_flip($fields);
+		}
+
+		if(!empty($search)) {
+			$available_fields = get_column_names('nodegroup_events');
+
+			foreach($search as $field => $value) {
+				if(array_key_exists($field, $available_fields)) {
+					switch($field) {
+						case 'nodegroup':
+							// Trim leading @
+							$value = ltrim($value, '@');
+					}
+
+					$query_opts[] = sprintf("`%s` LIKE '%s'", $field,
+						mysql_real_escape_string($value));
+				}
+			}
+		}
+
+		if(!empty($query_opts)) {
+			$query_str = ' WHERE ' . implode(' AND ', $query_opts);
+		}
+
+		$query = 'SELECT * FROM `nodegroup_events`';
+		$query .= $query_str;
+		$result = do_mysql_query($query);
+
+		if($result[0] === true) {
+			while($line = mysql_fetch_assoc($result[1])) {
+				if(empty($fields_as_keys)) {
+					$details[] = $line;
+				} else {
+					$details[] = array_intersect_key($line, $fields_as_keys);
+				}
+			}
+		}
+
+		return $details;
+	}
+
+	/**
+	 * Return details for nodegroup
+	 * @param array $params Associative array of fields/values to search for
+	 * @param array $fields Fields to include in result
+	 * @return array Array of nodegroup(s)
+	 */
+	public function getNodegroupDetails($search = array(), $fields = array()) {
+		$details = array();
+		$fields_as_keys = array();
+		$query_opts = array();
+		$query_str = '';
+
+		if(!empty($fields)) {
+			$fields_as_keys = array_flip($fields);
+		}
+
+		if(!empty($search)) {
+			$available_fields = array_merge(
+				get_column_names('nodegroups'),
+				get_column_names('nodes')
+			);
+
+			foreach($search as $field => $value) {
+				if(array_key_exists($field, $available_fields)) {
+					switch($field) {
+						case 'nodegroup':
+							// Trim leading @
+							$value = ltrim($value, '@');
+							$field = 'nodegroups.nodegroup';
+					}
+
+					$query_opts[] = sprintf("%s LIKE '%s'", $field,
+						mysql_real_escape_string($value));
+				}
+			}
+		}
+
+		if(!empty($query_opts)) {
+			$query_str = ' WHERE ' . implode(' AND ', $query_opts);
+		}
+
+		$query = 'SELECT nodegroups.* FROM nodegroups
+			LEFT JOIN nodes USING (nodegroup)';
+		$query .= $query_str;
+		$query .= ' GROUP BY nodegroup';
+		$result = do_mysql_query($query);
+
+		if($result[0] === true) {
+			while($line = mysql_fetch_assoc($result[1])) {
+				$line['priority'] = $this->getNodegroupPriority(array('nodegroup' => $line['nodegroup']), array('app', 'priority'));
+				ksort($line);
+				if(empty($fields_as_keys)) {
+					$details[] = $line;
+				} else {
+					$details[] = array_intersect_key($line, $fields_as_keys);
+				}
+			}
+		}
+
+		return $details;
+	}
+
+	/**
+	 * Return history for nodegroup
+	 * @param array $params Associative array of fields/values to search for
+	 * @param array $fields Fields to include in result
+	 * @return array Array of history
+	 */
+	public function getNodegroupHistory($search = array(), $fields = array()) {
+		$details = array();
+		$fields_as_keys = array();
+		$query_opts = array();
+		$query_str = '';
+
+		if(!empty($fields)) {
+			$fields_as_keys = array_flip($fields);
+		}
+
+		if(!empty($search)) {
+			$available_fields = get_column_names('nodegroup_history');
+
+			foreach($search as $field => $value) {
+				if(array_key_exists($field, $available_fields)) {
+					switch($field) {
+						case 'nodegroup':
+							// Trim leading @
+							$value = ltrim($value, '@');
+					}
+
+					$query_opts[] = sprintf("`%s` LIKE '%s'", $field,
+						mysql_real_escape_string($value));
+				}
+			}
+		}
+
+		if(!empty($query_opts)) {
+			$query_str = ' WHERE ' . implode(' AND ', $query_opts);
+		}
+
+		$query = 'SELECT * FROM `nodegroup_history`';
+		$query .= $query_str;
+		$result = do_mysql_query($query);
+
+		if($result[0] === true) {
+			while($line = mysql_fetch_assoc($result[1])) {
+				if(empty($fields_as_keys)) {
+					$details[] = $line;
+				} else {
+					$details[] = array_intersect_key($line, $fields_as_keys);
+				}
+			}
+		}
+
+		return $details;
+	}
+
+	/**
+	 * Return priority for nodegroup
+	 * @param array $params Associative array of fields/values to search for
+	 * @return array Array of priorities
+	 */
+	public function getNodegroupPriority($search = array(), $fields = array()) {
+		$details = array();
+		$fields_as_keys = array();
+		$query_opts = array();
+		$query_str = '';
+
+		if(!empty($fields)) {
+			$fields_as_keys = array_flip($fields);
+		}
+
+		if(!empty($search)) {
+			$available_fields = get_column_names('priority');
+
+			foreach($search as $field => $value) {
+				if(array_key_exists($field, $available_fields)) {
+					switch($field) {
+						case 'nodegroup':
+							// Trim leading @
+							$value = ltrim($value, '@');
+					}
+
+					$query_opts[] = sprintf("%s LIKE '%s'", $field,
+						mysql_real_escape_string($value));
+				}
+			}
+		}
+
+		if(!empty($query_opts)) {
+			$query_str = ' WHERE ' . implode(' AND ', $query_opts);
+		}
+
+		$query = 'SELECT * FROM priority';
+		$query .= $query_str;
+		$result = do_mysql_query($query);
+
+		if($result[0] === true) {
+			while($line = mysql_fetch_assoc($result[1])) {
+				ksort($line);
+				if(empty($fields_as_keys)) {
+					$details[] = $line;
+				} else {
+					$details[] = array_intersect_key($line, $fields_as_keys);
+				}
+			}
+		}
+
+		return $details;
+	}
+
+	/**
+	 * Update history table
+	 * @param string $name Name
+	 * @param array $old Old information
+	 * @param array $new New information
+	 */
+	public function updateNodegroupHistory($name = NULL, $old = array(), $new = array()) {
+		if(!$this->validateNodegroupName($name)) {
+			return;
+		}
+
+		$columns = get_column_names('nodegroups');
+		$time = time();
+		$updates = array();
+		$user = mysql_real_escape_string($_SERVER['REMOTE_USER']);
+
+		if(empty($old)) {
+			$old = array_fill_keys($columns, NULL);
+			$old['priority'] = array();
+		}
+
+		if(empty($new)) {
+			$new = array_fill_keys($columns, NULL);
+			$new['priority'] = array();
+		}
+
+		foreach(array_keys($columns) as $column) {
+			if($old[$column] != $new[$column]) {
+				$updates[] = sprintf("('%s', '%s', '%d', '%s', '%s', '%s')",
+					$name, $user, $time, $column,
+					mysql_real_escape_string($old[$column]),
+					mysql_real_escape_string($new[$column]));
+			}
+		}
+
+		// Also log priority changes
+		if(!empty($old['priority']) || !empty($new['priority'])) {
+			$apps = array();
+
+			$o_apps = array();
+			foreach($old['priority'] as $app) {
+				$o_apps[$app['app']] = $app['priority'];
+				$apps[$app['app']] = $app['app'];
+			}
+
+			$n_apps = array();
+			foreach($new['priority'] as $app) {
+				$n_apps[$app['app']] = $app['priority'];
+				$apps[$app['app']] = $app['app'];
+			}
+
+			foreach($apps as $app) {
+				if(!array_key_exists($app, $o_apps)) {
+					$o_apps[$app] = 50;
+				}
+
+				if(!array_key_exists($app, $n_apps)) {
+					$n_apps[$app] = 50;
+				}
+
+				if($o_apps[$app] != $n_apps[$app]) {
+					$updates[] = sprintf("('%s', '%s', '%d', '%s', '%s', '%s')",
+						$name, $user, $time, mysql_real_escape_string($app),
+						$o_apps[$app], $n_apps[$app]);
+				}
+			}
+		}
+
+		if(empty($updates)) {
+			return;
+		}
+
+		$query = 'INSERT INTO nodegroup_history (`nodegroup`, `user`, `c_time`, `field`, `old_value`, `new_value`) VALUES ';
+		$query .= implode(',', $updates);
+		$result = do_mysql_query($query);
+
+		return;
+	}
+
+	/**
+	 * Parse an expression
+	 * @param string $expr Expression
+	 * @return array Nodes
+	 */
+	public function parseExpression($input = NULL, $use_cache = false) {
+		$entities = array();
+		$entities_exclude = array();
+
+		if(!$this->validateExpression($input)) {
+			return array();
+		}
+
+		$expr = $this->sanitizeExpression($input);
+
+		foreach($this->tokenizeExpression($expr) as $entity) {
+		// Loop through each entity and add to $entities as appropriate
+
+			if(empty($entity)) {
+				continue;
+			}
+
+			$negate = false;
+
+			switch(substr($entity, 0, 1)) {
+				case '#':
+					continue 2;
+				case '!':
+					$entity = ltrim($entity, '!');
+					$negate = true;
+					break;
+			}
+
+			$r_entity = array();
+
+			switch(substr($entity, 0, 1)) {
+				case '&':
+					$r_entity = $this->parseExprFunction($entity, $use_cache);
+					break;
+				case '@':
+					if($use_cache == true) {
+						$r_entity = $this->getNodeCache(ltrim($entity, '@'));
+					} else {
+						$entity_details = $this->getNodegroupDetails(array('nodegroup' => $entity));
+						if(!empty($entity_details)) {
+							$r_entity = $this->parseExpression($entity_details[0]['expression']);
+						} else {
+							$r_entity = array();
+						}
+					}
+					break;
+				default:
+					$r_entity = array($entity);
+			}
+
+			if($negate == true) {
+				$entities_exclude = array_merge($entities_exclude, $r_entity);
+			} else {
+				$entities = array_merge($entities, $r_entity);
+			}
+		}
+
+		return array_diff($entities, $entities_exclude);
+	}
+
+	/**
+	 * Get list of nodes from database
+	 * @param string $name Nodegroup
+	 * @return array Nodes
+	 */
+	public function getNodeCache($nodegroup = NULL) {
+		$nodes = array();
+
+		if(!$this->validateNodegroupName($nodegroup)) {
+			return $nodes;
+		}
+
+		$query = 'SELECT * FROM nodes WHERE nodegroup=';
+		$query .= sprintf("'%s'", $nodegroup);
+
+		$result = do_mysql_query($query);
+
+		if($result[0] !== true) {
+			return $nodes;
+		}
+
+		while($line = mysql_fetch_assoc($result[1])) {
+			$nodes[] = $line['node'];
+		}
+
+		return $nodes;
+	}
+
+	/**
+	 * Populate nodes table
+	 * @param string $name Nodegroup
+	 * @param array $nodes Nodes
+	 * @return array Nodes
+	 */
+	public function populateNodeCache($nodegroup = NULL, $nodes = array()) {
+		if(!$this->validateNodegroupName($nodegroup)) {
+			return false;
+		}
+
+		$c_nodes = $this->getNodeCache($nodegroup);
+		$o_nodes = array_diff($c_nodes, $nodes);
+		$n_nodes = array_diff($nodes, $c_nodes);
+		$e_nodes = array();
+		$user = mysql_real_escape_string($_SERVER['REMOTE_USER']);
+		$time = time();
+
+		$nodegroup = mysql_real_escape_string($nodegroup);
+
+		if(!empty($n_nodes)) {
+			$query = 'INSERT IGNORE INTO `nodes` (`nodegroup`, `node`) VALUES ';
+			$query_opts = array();
+
+			foreach($n_nodes as $node) {
+				if(!$this->validateNodeName($node)) {
+					continue;
+				}
+
+				$query_opts[] = sprintf("('%s', '%s')", $nodegroup, mysql_real_escape_string($node));
+				$e_nodes[] = sprintf("('%s', '%s', '%d', '%s', '%s')",
+					$nodegroup, $user, $time, 'ADD', mysql_real_escape_string($node));
+			}
+
+			$query .= implode(', ', $query_opts);
+			$result = do_mysql_query($query);
+
+			if($result[0] !== true) {
+				return false;
+			}
+		}
+
+		if(!empty($o_nodes)) {
+			$query = 'DELETE FROM `nodes` WHERE';
+			$query .= sprintf(" `nodegroup`='%s' AND `node` IN", $nodegroup);
+
+			$query_opts = array();
+
+			foreach($o_nodes as $node) {
+				$query_opts[] = sprintf("'%s'", mysql_real_escape_string($node));
+				$e_nodes[] = sprintf("('%s', '%s', '%d', '%s', '%s')",
+					$nodegroup, $user, $time, 'REMOVE', mysql_real_escape_string($node));
+			}
+
+			$query .= sprintf(" (%s)", implode(', ', $query_opts));
+
+			$result = do_mysql_query($query);
+
+			if($result[0] !== true) {
+				return false;
+			}
+		}
+
+		if(!empty($e_nodes)) {
+			$query = 'INSERT INTO `nodegroup_events`
+				(`nodegroup`, `user`, `c_time`, `event`, `node`) VALUES ';
+
+			$query .= implode(', ', $e_nodes);
+			$result = do_mysql_query($query);
+
+			if($result[0] !== true) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get nodegroups from parent/child table
+	 * @param string $name Nodegroup
+	 * @param string $type Parent/child
+	 * @return array Nodes
+	 */
+	public function getNodegroupCache($nodegroup = NULL, $type = 'child') {
+		$nodegroups = array();
+
+		$desired = 'parent';
+		switch($type) {
+			case 'parent':
+				$desired = 'child';
+				break;
+		}
+
+		if(!$this->validateNodegroupName($nodegroup)) {
+			return $nodegroups;
+		}
+
+		$query = 'SELECT * FROM parent_child WHERE ';
+		$query .= sprintf("%s='%s'", $type, $nodegroup);
+
+		$result = do_mysql_query($query);
+
+		if($result[0] !== true) {
+			return $nodegroups;
+		}
+
+		while($line = mysql_fetch_assoc($result[1])) {
+			$nodegroups[] = $line[$desired];
+		}
+
+		return $nodegroups;
+	}
+
+	/**
+	 * Populate parent/child table
+	 * @param string $name Nodegroup
+	 * @param array $nodegroupss Nodegroups
+	 * @return bool
+	 */
+	public function populateNodegroupCache($nodegroup = NULL, $children = array()) {
+		if(!$this->validateNodegroupName($nodegroup)) {
+			return false;
+		}
+
+		$o_nodegroups = array_diff($this->getNodegroupCache($nodegroup, 'parent'), $children);
+
+		$n_nodegroups = array();
+
+		$nodegroup = mysql_real_escape_string($nodegroup);
+
+		foreach($children as $child) {
+			if(!$this->validateNodegroupName($child)) {
+				continue;
+			}
+
+			$n_nodegroups[] = sprintf("('%s', '%s')", $nodegroup, mysql_real_escape_string($child));
+		}
+
+		if(!empty($n_nodegroups)) {
+			$query = 'INSERT IGNORE INTO parent_child (parent, child) VALUES ';
+			$query .= implode(', ', $n_nodegroups);
+ 
+			$result = do_mysql_query($query);
+
+			if($result[0] !== true) {
+				return false;
+			}
+		}
+
+		if(!empty($o_nodegroups)) {
+			$query = 'DELETE FROM parent_child WHERE';
+			$query .= sprintf(" parent='%s' AND child IN", $nodegroup);
+
+			$query_opts = array();
+
+			foreach($o_nodegroups as $child_nodegroup) {
+				$query_opts[] = sprintf("'%s'", mysql_real_escape_string($child_nodegroup));
+			}
+
+			$query .= sprintf(" (%s)", implode(', ', $query_opts));
+
+			$result = do_mysql_query($query);
+
+			if($result[0] !== true) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Populate parent/child table
+	 * @param string $name Nodegroup
+	 * @return bool
+	 */
+	public function populateNodegroupParentsCache($nodegroup = NULL) {
+		if(!$this->validateNodegroupName($nodegroup)) {
+			return false;
+		}
+
+		$parents = $this->getNodegroupCache($nodegroup, 'child');
+
+		foreach($parents as $parent) {
+			$data = $this->getNodegroupDetails(array('nodegroup' => $parent));
+			if(empty($data)) {
+				continue;
+			}
+			$nodes = $this->parseExpression($data[0]['expression'], true);
+		
+			$this->populateNodeCache($parent, $nodes);
+			$this->populateNodegroupParentsCache($parent);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Split expression into tokens
+	 * @param string $name Expression
+	 * @return array tokens
+	 */
+	private function tokenizeExpression($expr = NULL) {
+		$tokens = array();
+
+		$chars = str_split($expr);
+		$entity = '';
+		$reset = false;
+		$is_func = false;
+		$is_regex = false;
+		$nest_func = 0;
+		$length = strlen($expr) - 1;
+
+		foreach($chars as $pos => $char) {
+		// Loop through each character in $expr and find the start and end
+		// of each entity (function, nodegroup, node, etc). Once found, add
+		// to $tokens
+
+			if($char == '/') {
+				if($is_regex == true) {
+					if($chars[$pos - 1] != '\\') {
+						$is_regex = false;
+					}
+				} else {
+					$is_regex = true;
+				}
+			}
+
+			if($is_regex == true) {
+				$entity .= $char;
+				continue;
+			}
+
+			switch($char) {
+				case '&':
+					$entity .= $char;
+					if($is_func == false) {
+						$is_func = true;
+					} else {
+						$nest_func++;
+					}
+					break;
+				case ')':
+					$entity .= $char;
+					if($nest_func > 0) {
+						$nest_func--;
+					} else {
+						$is_func = false;
+						$reset = true;
+					}
+					break;
+				case ',':
+					if($is_func == false) {
+						$reset = true;
+					} else {
+						$entity .= $char;
+					}
+					break;
+				default:
+					$entity .= $char;
+			}
+
+			if($reset == true || $pos === $length) {
+				$tokens[] = $entity;
+				$entity = '';
+				$reset = false;
+				$is_func = false;
+				$nest_func = false;
+			}
+		}
+
+		return $tokens;
+	}
+
+	/**
+	 * Parse a function
+	 * @param string $name Function
+	 * @return array Nodes
+	 */
+	private function parseExprFunction($input, $use_cache = false) {
+	// Purpose: given a function, parse it
+	// Inputs: function expr
+	// Returns: array
+
+		list($function, $expr) = explode('(', $input, 2);
+		if(substr($expr, -1, 1) === ')') {
+			$expr = substr($expr, 0, -1);
+		}
+
+		$entities = array();
+		$include = array();
+		$exclude = array();
+
+		foreach($this->tokenizeExpression($expr) as $pos => $token) {
+			$negate = false;
+
+			switch(substr($token, 0, 1)) {
+				case '#':
+					continue 2;
+				case '!':
+					$token = ltrim($token, '!');
+					$negate = true;
+					break;
+			}
+
+			if(substr($function, 0, 6) === '&regex') {
+				if($pos === 0) {
+				// The first item of &regexp() is the regex
+				// which doesn't need to be parsed as an expression
+					$include[$token] = array($token);
+					continue;
+				}
+			}
+
+			$entity = $this->parseExpression($token, $use_cache);
+
+			if($negate === true) {
+				$exclude = array_merge($exclude, $entity);
+			} else {
+				$include[$token] = $entity;
+			}
+		}
+
+		$entities = $this->array_function($function, $include);
+		return array_diff($entities, $exclude);
+	}
+
+	/**
+	 * Translate nodegroup function into actual function
+	 * @param string $name Function
+	 * @return array Nodes
+	 */
+	private function array_function($function, $array) {
+		$r_func = 'array_merge';
+
+		switch($function) {
+			case '&diff':
+				$r_func = 'array_diff';
+				break;
+			case '&regex':
+			case '&regexp':
+				$r_func = array($this, 'functionRegexp');
+				break;
+			case '&intersect':
+				$r_func = 'array_intersect';
+				break;
+			case '&union':
+				$r_func = 'array_merge';
+				break;
+		}
+
+		return call_user_func_array($r_func, array_values($array));
+	}
+
+	/**
+	 * Match nodes against given regexp
+	 * @param array $array filter, nodes
+	 * @return array nodes
+	 */
+	private function functionRegexp() {
+		$array = func_get_args();
+		$regexp = array_shift($array);
+		$array = call_user_func_array('array_merge', array_values($array));
+
+		$output = array_filter($array, array(new NodeGroupsRegexp($regexp[0]), 'functionRegexp'));
+		return $output;
+	}
+}
+
+class NodeGroupsRegexp {
+	function NodeGroupsRegexp($regexp) {
+		$this->regexp = $regexp;
+	}
+
+	public function functionRegexp($node = false) {
+		return filter_var($node, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $this->regexp)));
+	}
+}
+?>
