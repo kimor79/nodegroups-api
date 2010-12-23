@@ -37,13 +37,13 @@ $config = @parse_ini_file('/usr/local/etc/nodegroups_api/config.ini', true);
 
 if(empty($config)) {
 	$api->sendHeaders();
-	$api->showOutput('500', 'Error with config file');
+	$api->showOutput(500, 'Error with config file');
 	exit(0);
 }
 
 if(!array_key_exists('driver', $config)) {
 	$api->sendHeaders();
-	$api->showOutput('500', 'No driver configured');
+	$api->showOutput(500, 'No driver configured');
 	exit(0);
 }
 
@@ -51,7 +51,7 @@ require_once('nodegroups_api/v1/includes/drivers.php');
 
 if(!array_key_exists($config['driver'], $drivers)) {
 	$api->sendHeaders();
-	$api->showOutput('500', 'No such driver: ' . $config['driver']);
+	$api->showOutput(500, 'No such driver: ' . $config['driver']);
 	exit(0);
 }
 
@@ -61,7 +61,7 @@ try {
 	$driver = new NodegroupsApiDriver();
 } catch (Exception $e) {
 	$api->sendHeaders();
-	$api->showOutput('500', $e->getMessage());
+	$api->showOutput(500, $e->getMessage());
 	exit(0);
 }
 

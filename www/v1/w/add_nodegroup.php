@@ -46,7 +46,7 @@ $errors = $api->validateInput($input, $required, $optional);
 
 if(!empty($errors)) {
 	$api->sendHeaders();
-	$api->showOutput('400', implode("\n", $errors));
+	$api->showOutput(400, implode("\n", $errors));
 	exit(0);
 }
 
@@ -58,7 +58,7 @@ $details = array(
 
 if(!$driver->addNodegroup($nodegroup, $details)) {
 	$api->sendHeaders();
-	$api->showOutput('500', $driver->error());
+	$api->showOutput(500, $driver->error());
 	exit(0);
 }
 
@@ -66,11 +66,11 @@ $data = $driver->getNodegroup($nodegroup);
 
 if(!is_array($data)) {
 	$api->sendHeaders();
-	$api->showOutput('500', $driver->error());
+	$api->showOutput(500, $driver->error());
 	exit(0);
 }
 
 $api->sendHeaders();
-$api->showOutput('200', 'Added', $data);
+$api->showOutput(200, 'Added', $data);
 
 ?>
