@@ -72,10 +72,10 @@ if(!is_array($data)) {
 }
 
 $parsed = $ngexpr->parseExpression($data['expression']);
-if(array_key_exists('error', $parsed)) {
+if(empty($parsed)) {
 	$driver->deleteNodegroup($nodegroup);
 	$api->sendHeaders();
-	$api->showOutput(500, $parsed['error']);
+	$api->showOutput(500, 'Unable to parse expression');
 	exit(0);
 }
 
