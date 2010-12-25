@@ -31,8 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class NodegroupsApiDriver {
 
+	private $children = array();
 	protected $error = '';
 	private $nodegroups = array();
+	private $nodes = array();
+	public $slave_okay = false;
 
 	public function __construct() {
 	}
@@ -45,6 +48,17 @@ class NodegroupsApiDriver {
 	 */
 	public function addNodegroup($nodegroup = '', $details = array()) {
 		$this->nodegroups[$nodegroup] = $details;
+
+		return true;
+	}
+
+	/**
+	 * Delete a nodegroup
+	 * @param string $nodegroup
+	 * @return bool
+	 */
+	public function deleteNodegroup($nodegroup) {
+		unset($this->nodegroups[$nodegroup]);
 
 		return true;
 	}
@@ -69,6 +83,26 @@ class NodegroupsApiDriver {
 
 		$this->error = 'No such nodegroup';
 		return false;
+	}
+
+	/**
+	 * Set the list of nodegroups included in a nodegroup
+	 * @param string $nodegroup
+	 * @param array $children
+	 * @return bool
+	 */
+	public function setChildren($nodegroup = '', $children = array()) {
+		$this->children[$nodegroup] = $children;
+	}
+
+	/**
+	 * Set nodes for given nodegroup
+	 * @param string $nodegroup
+	 * @param array $nodes
+	 * @return bool
+	 */
+	public function setNodes($nodegroup = '', $nodes = array()) {
+		$this->nodes[$nodegroup] = $nodes;
 	}
 }
 
