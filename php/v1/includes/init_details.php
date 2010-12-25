@@ -29,6 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 **/
 
+require_once('nodegroups_api/v1/classes/expression.php');
+
+$ngexpr = new NodegroupsApiExpression();
+
 require_once('nodegroups_api/v1/classes/api_details.php');
 
 $api = new NodegroupsApiDetails();
