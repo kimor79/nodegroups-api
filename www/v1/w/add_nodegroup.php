@@ -65,6 +65,31 @@ if(!$driver->addNodegroup($nodegroup, $details)) {
 $data = $driver->getNodegroup($nodegroup);
 
 if(!is_array($data)) {
+	$driver->deleteNodegroup($nodegroup);
+	$api->sendHeaders();
+	$api->showOutput(500, $driver->error());
+	exit(0);
+}
+
+$parsed = $ngexpr->parseExpression($data['expression']);
+if(array_key_exists('error', $parsed)) {
+	$driver->deleteNodegroup($nodegroup);
+	$api->sendHeaders();
+	$api->showOutput(500, $parsed['error']);
+	exit(0);
+}
+
+$return = $driver->setNodes($nodegroup, $parsed['nodes']);
+if(!$return) {
+	$driver->deleteNodegroup($nodegroup);
+	$api->sendHeaders();
+	$api->showOutput(500, $driver->error());
+	exit(0);
+}
+
+$return = $driver->setChildren($nodegroup, $parsed['nodegroups']);
+if(!$return) {
+	$driver->deleteNodegroup($nodegroup);
 	$api->sendHeaders();
 	$api->showOutput(500, $driver->error());
 	exit(0);
