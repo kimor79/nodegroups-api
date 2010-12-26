@@ -37,7 +37,7 @@ $input = $_POST;
 $required = array(
 	'description' => NULL,
 	'expression' => 'expression',
-	'name' => 'nodegroup_name',
+	'nodegroup' => 'nodegroup_name',
 );
 
 $optional = array();
@@ -50,11 +50,18 @@ if(!empty($errors)) {
 	exit(0);
 }
 
-$nodegroup = $input['name'];
+$nodegroup = $input['nodegroup'];
 $details = array(
 	'description' => $api->gpcSlash($input['description']),
 	'expression' => $api->gpcSlash($input['expression']),
 );
+
+$parsed = $ngexpr->parseExpression($details['expression']);
+if(empty($parsed)) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Unable to parse expression');
+	exit(0);
+}
 
 if(!$driver->addNodegroup($nodegroup, $details)) {
 	$api->sendHeaders();
@@ -62,33 +69,14 @@ if(!$driver->addNodegroup($nodegroup, $details)) {
 	exit(0);
 }
 
-$data = $driver->getNodegroup($nodegroup);
-
-if(!is_array($data)) {
+if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
 	$driver->deleteNodegroup($nodegroup);
 	$api->sendHeaders();
 	$api->showOutput(500, $driver->error());
 	exit(0);
 }
 
-$parsed = $ngexpr->parseExpression($data['expression']);
-if(empty($parsed)) {
-	$driver->deleteNodegroup($nodegroup);
-	$api->sendHeaders();
-	$api->showOutput(500, 'Unable to parse expression');
-	exit(0);
-}
-
-$return = $driver->setNodes($nodegroup, $parsed['nodes']);
-if(!$return) {
-	$driver->deleteNodegroup($nodegroup);
-	$api->sendHeaders();
-	$api->showOutput(500, $driver->error());
-	exit(0);
-}
-
-$return = $driver->setChildren($nodegroup, $parsed['nodegroups']);
-if(!$return) {
+if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
 	$driver->deleteNodegroup($nodegroup);
 	$api->sendHeaders();
 	$api->showOutput(500, $driver->error());
