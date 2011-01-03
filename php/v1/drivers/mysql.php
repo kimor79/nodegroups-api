@@ -109,6 +109,17 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function addNodegroup($nodegroup = '', $details = array()) {
+		$query = 'INSERT INTO `' . $this->prefix . 'nodegroups` SET ';
+		$query .= '`nodegroup` = ' . sprintf("'%s'", mysql_real_escape_string($nodegroup));
+
+		foreach($details as $key => $value) {
+			$query .= sprintf(", `%s` = '%s'", $key,
+				mysql_real_escape_string($value));
+		}
+
+		if($this->doQuery($query)) {
+			return true;
+		}
 
 		return false;
 	}
@@ -119,7 +130,28 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function deleteNodegroup($nodegroup) {
+		$query = 'DELETE FROM `' . $this->prefix . 'nodegroups` WHERE ';
+		$query .= '`nodegroup` = ' . sprintf("'%s'", mysql_real_escape_string($nodegroup));
 
+		if($this->doQuery($query)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Wrapper around mysql_query()
+	 * @param string $query
+	 */
+	private function doQuery($query) {
+		$result = mysql_query($query);
+
+		if($result !== false) {
+			return $result;
+		}
+
+		$this->error = mysql_error();
 		return false;
 	}
 
@@ -148,6 +180,30 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function setChildren($nodegroup = '', $children = array()) {
+		$parent = sprintf("'%s'", mysql_real_escape_string($nodegroup));
+
+		$add = array();
+		$save = array();
+		foreach($children as $child) {
+			$t_child = sprintf("'%s'", mysql_real_escape_string($child));
+			$add[] = '(' . $parent . ',' . $child . ')';
+			$save[] = $t_child;
+		}
+
+		$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
+		$query_add.= implode(',', $add);
+
+		if(!$this->doQuery($query_add)) {
+			return false;
+		}
+
+		$query_delete = 'DELETE FROM `' . $this->prefix . 'parent_child` WHERE ';
+		$query_delete .= '`parent` = ' . $parent . ' AND `child` NOT IN ';
+		$query_delete .= '(' . implode(',', $save) . ')';
+
+		if($this->doQuery($query_delete)) {
+			return true;
+		}
 
 		return false;
 	}
@@ -159,6 +215,30 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function setNodes($nodegroup = '', $nodes = array()) {
+		$nodegroup = sprintf("'%s'", mysql_real_escape_string($nodegroup));
+
+		$add = array();
+		$save = array();
+		foreach($nodes as $node) {
+			$t_node = sprintf("'%s'", mysql_real_escape_string($node));
+			$add[] = '(' . $nodegroup . ',' . $node . ')';
+			$save[] = $t_node;
+		}
+
+		$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
+		$query_add .= implode(',', $add);
+
+		if(!$this->doQuery($query_add)) {
+			return false;
+		}
+
+		$query_delete = 'DELETE FROM `' . $this->prefix . 'nodes` WHERE ';
+		$query_delete .= '`nodegroup` = ' . $nodegroup . ' AND `node` NOT IN ';
+		$query_delete .= '(' . implode(',', $save) . ')';
+
+		if($this->doQuery($query_delete)) {
+			return true;
+		}
 
 		return false;
 	}
