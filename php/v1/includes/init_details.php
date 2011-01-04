@@ -33,7 +33,7 @@ require_once('nodegroups_api/v1/classes/expression.php');
 
 $ngexpr = new NodegroupsApiExpression();
 
-require_once('nodegroups_api/v1/classes/api_details.php');
+require_once('nodegroups_api/v1/classes/api_producer_details.php');
 
 $api = new NodegroupsApiDetails();
 
