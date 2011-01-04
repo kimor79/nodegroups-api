@@ -91,7 +91,7 @@ class NodegroupsApiDriver {
 			}
 		}
 
-		$this->link = mysql_connect($host, $user, $password);
+		$this->link = @mysql_connect($host, $user, $password);
 
 		if(!$this->link) {
 			throw new Exception(mysql_error());
