@@ -190,16 +190,22 @@ class NodegroupsApiDriver {
 			$save[] = $child;
 		}
 
-		$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
-		$query_add.= implode(',', $add);
+		if(!empty($add)) {
+			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
+			$query_add .= implode(',', $add);
 
-		if(!$this->doQuery($query_add)) {
-			return false;
+			if(!$this->doQuery($query_add)) {
+				return false;
+			}
 		}
 
 		$query_delete = 'DELETE FROM `' . $this->prefix . 'parent_child` WHERE ';
-		$query_delete .= '`parent` = ' . $parent . ' AND `child` NOT IN ';
-		$query_delete .= '(' . implode(',', $save) . ')';
+		$query_delete .= '`parent` = ' . $parent;
+
+		if(!empty($save)) {
+			$query_delete .= ' AND `child` NOT IN ';
+			$query_delete .= '(' . implode(',', $save) . ')';
+		}
 
 		if($this->doQuery($query_delete)) {
 			return true;
@@ -225,16 +231,22 @@ class NodegroupsApiDriver {
 			$save[] = $node;
 		}
 
-		$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
-		$query_add .= implode(',', $add);
+		if(!empty($add)) {
+			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
+			$query_add .= implode(',', $add);
 
-		if(!$this->doQuery($query_add)) {
-			return false;
+			if(!$this->doQuery($query_add)) {
+				return false;
+			}
 		}
 
 		$query_delete = 'DELETE FROM `' . $this->prefix . 'nodes` WHERE ';
-		$query_delete .= '`nodegroup` = ' . $nodegroup . ' AND `node` NOT IN ';
-		$query_delete .= '(' . implode(',', $save) . ')';
+		$query_delete .= '`nodegroup` = ' . $nodegroup;
+
+		if(!empty($save)) {
+			$query_delete .= ' AND `node` NOT IN ';
+			$query_delete .= '(' . implode(',', $save) . ')';
+		}
 
 		if($this->doQuery($query_delete)) {
 			return true;
