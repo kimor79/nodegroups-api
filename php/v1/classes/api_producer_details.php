@@ -59,6 +59,10 @@ class NodegroupsApiDetails extends ApiProducerDetails {
 	 * @return bool
 	 */
 	protected function validateInput_nodegroup_name($input) {
+		if(preg_match('/^[-\w\.]+$/i', $input)) {
+			return true;
+		}
+
 		return false;
 	}
 }
