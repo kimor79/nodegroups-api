@@ -184,10 +184,10 @@ class NodegroupsApiDriver {
 
 		$add = array();
 		$save = array();
-		foreach($children as $child) {
-			$t_child = sprintf("'%s'", mysql_real_escape_string($child));
+		foreach($children as $t_child) {
+			$child = sprintf("'%s'", mysql_real_escape_string($t_child));
 			$add[] = '(' . $parent . ',' . $child . ')';
-			$save[] = $t_child;
+			$save[] = $child;
 		}
 
 		$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
@@ -219,10 +219,10 @@ class NodegroupsApiDriver {
 
 		$add = array();
 		$save = array();
-		foreach($nodes as $node) {
-			$t_node = sprintf("'%s'", mysql_real_escape_string($node));
+		foreach($nodes as $t_node) {
+			$node = sprintf("'%s'", mysql_real_escape_string($t_node));
 			$add[] = '(' . $nodegroup . ',' . $node . ')';
-			$save[] = $t_node;
+			$save[] = $node;
 		}
 
 		$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
