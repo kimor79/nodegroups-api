@@ -45,12 +45,7 @@ class NodegroupsApiDetails extends ApiProducerDetails {
 	protected function validateInput_expression($input) {
 		global $ngexpr;
 
-		$return = $ngexpr->validateExpression($input);
-		if(empty($return)) {
-			return true;
-		}
-
-		return false;
+		return $ngexpr->validateExpression($input);
 	}
 
 	/**
