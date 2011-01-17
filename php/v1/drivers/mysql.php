@@ -105,6 +105,8 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function addNodegroup($nodegroup = '', $details = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
 		$binds = 's';
 		$refs = array(&$nodegroup);
 
@@ -140,7 +142,7 @@ class NodegroupsApiDriver {
 			$this->error = $st->error;
 		}
 
-		return fasle;
+		return false;
 	}
 
 	/**
@@ -149,6 +151,8 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function deleteNodegroup($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
 		$query = 'DELETE FROM `' . $this->prefix . 'nodegroups` WHERE ';
 		$query .= '`nodegroup` = ?';
 
@@ -184,9 +188,90 @@ class NodegroupsApiDriver {
 	/**
 	 * Get a nodegroup
 	 * @param string $nodegroup
-	 * @return mixed array with details or false
+	 * @return mixed array with details (which may be empty) or false
 	 */
 	public function getNodegroup($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = 'SELECT * FROM `' . $this->prefix . 'nodegroups`';
+		$query .= ' WHERE `nodegroup` = ?';
+
+		$st = $this->mysql->prepare($query);
+		if(!$st) {
+			$this->error = $this->mysql->error;
+			return false;
+		}
+
+		if($st->bind_param('s', &$nodegroup)) {
+			if($st->execute()) {
+				if($st->store_result()) {
+					$result = $st->result_metadata();
+					if($result) {
+						$columns = array();
+						foreach($result->fetch_fields() as $field) {
+							$columns[] = &$fields[$field->name];
+						}
+
+						if(call_user_func_array(array($st, 'bind_result'), $columns)) {
+							while($st->fetch()) {
+								$details = array();
+								foreach($fields as $field => $value) {
+									$details[$field] = $value;
+								}
+
+								return $details;
+							}
+						}
+					}
+				}
+			}
+		}
+				
+		if($st->errno) {
+			$this->error = $st->error;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get a nodes from a nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array of nodes (which may be empty) or false
+	 */
+	public function getNodesFromNodegroup($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = 'SELECT `node` FROM `' . $this->prefix . 'nodes`';
+		$query .= ' WHERE `nodegroup` = ?';
+
+		$st = $this->mysql->prepare($query);
+		if(!$st) {
+			$this->error = $this->mysql->error;
+			return false;
+		}
+
+		if($st->bind_param('s', &$nodegroup)) {
+			if($st->execute()) {
+				if($st->store_result()) {
+					$result = $st->result_metadata();
+					if($result) {
+						if($st->bind_result($node)) {
+							$nodes = array();
+							while($st->fetch()) {
+								$nodes[] = $node;
+							}
+
+							return $nodes;
+						}
+					}
+				}
+			}
+		}
+				
+		if($st->errno) {
+			$this->error = $st->error;
+		}
 
 		return false;
 	}
@@ -198,22 +283,27 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function setChildren($nodegroup = '', $children = array()) {
-		$add = array();
-		$binds = '';
-		$questions = array();
-		$save = array();
+		$nodegroup = $this->stripAt($nodegroup);
 
-		foreach($children as $child) {
+		$add = array();
+		$add_questions = array();
+		$binds = '';
+		$save = array();
+		$save_questions = array();
+
+		foreach($children as $t_child) {
+			$child = $this->stripAt($t_child);
 			$add[] = &$nodegroup;
 			$add[] = &$child;
+			$add_questions[] = '(?, ?)';
 			$binds .= 's';
-			$questions[] = '?';
 			$save[] = &$child;
+			$save_questions[] = '?';
 		}
 
 		if(!empty($add)) {
 			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
-			$query_add .= '(' . implode(',', $questions) . ',' . implode(',', $questions) . ')';
+			$query_add .= implode(',', $add_questions);
 
 			$st = $this->mysql->prepare($query_add);
 			if(!$st) {
@@ -243,7 +333,7 @@ class NodegroupsApiDriver {
 
 		if(!empty($save)) {
 			$query_delete .= ' AND `child` NOT IN ';
-			$query_delete .= '(' . implode(',', $questions) . ')';
+			$query_delete .= '(' . implode(',', $save_questions) . ')';
 		}
 
 		$st = $this->mysql->prepare($query_delete);
@@ -272,22 +362,26 @@ class NodegroupsApiDriver {
 	 * @return bool
 	 */
 	public function setNodes($nodegroup = '', $nodes = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
 		$add = array();
+		$add_questions = array();
 		$binds = '';
-		$questions = array();
 		$save = array();
+		$save_questions = array();
 
 		foreach($nodes as $node) {
 			$add[] = &$nodegroup;
 			$add[] = &$node;
+			$add_questions[] = '(?, ?)';
 			$binds .= 's';
-			$questions[] = '?';
 			$save[] = &$node;
+			$save_questions[] = '?';
 		}
 
 		if(!empty($add)) {
 			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
-			$query_add .= '(' . implode(',', $questions) . ',' . implode(',', $questions) . ')';
+			$query_add .= implode(',', $add_questions);
 
 			$st = $this->mysql->prepare($query_add);
 			if(!$st) {
@@ -317,7 +411,7 @@ class NodegroupsApiDriver {
 
 		if(!empty($save)) {
 			$query_delete .= ' AND `node` NOT IN ';
-			$query_delete .= '(' . implode(',', $questions) . ')';
+			$query_delete .= '(' . implode(',', $save_questions) . ')';
 		}
 
 		$st = $this->mysql->prepare($query_delete);
@@ -337,6 +431,19 @@ class NodegroupsApiDriver {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Strip the @ from a nodegroup name
+	 * @param string $nodegroup
+	 * @return string
+	 */
+	private function stripAt($nodegroup) {
+		if(substr($nodegroup, 0, 1) === '@') {
+			return substr($nodegroup, 1);
+		}
+
+		return $nodegroup;
 	}
 }
 
