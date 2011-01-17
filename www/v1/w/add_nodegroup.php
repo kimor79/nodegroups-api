@@ -65,21 +65,23 @@ if(empty($parsed)) {
 
 if(!$driver->addNodegroup($nodegroup, $details)) {
 	$api->sendHeaders();
-	$api->showOutput(500, $driver->error());
+	$api->showOutput(500, 'Adding nodegroup: ' . $driver->error());
 	exit(0);
 }
 
 if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
+	$error = $driver->error();
 	$driver->deleteNodegroup($nodegroup);
 	$api->sendHeaders();
-	$api->showOutput(500, $driver->error());
+	$api->showOutput(500, 'Setting Nodes: ' . $error);
 	exit(0);
 }
 
 if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
+	$error = $driver->error();
 	$driver->deleteNodegroup($nodegroup);
 	$api->sendHeaders();
-	$api->showOutput(500, $driver->error());
+	$api->showOutput(500, 'Setting Children: ' . $error);
 	exit(0);
 }
 
