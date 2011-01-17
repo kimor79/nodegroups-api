@@ -85,6 +85,8 @@ if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
 	exit(0);
 }
 
+$data = $driver->getNodegroup($nodegroup);
+
 $api->sendHeaders();
 $api->showOutput(200, 'Added', $data);
 
