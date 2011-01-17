@@ -72,14 +72,14 @@ class NodegroupsApiExpression {
 					$list = $this->parseFunction($entity, $use_cache);
 					break;
 				case '@':
-					$nodegroups[$entity] = substr($entity, 0, 1);
+					$nodegroups[$entity] = substr($entity, 1);
 
 					if($use_cache) {
-						$r_entity = $driver->getNodesFromNodegroup($entity);
+						$list = $driver->getNodesFromNodegroup($entity);
 					} else {
-						$nodegroup = $driver->getNodegroup($entity);
-						$details = $this->parseExpression($details['nodegroup'], $use_cache);
-						$list = array($details['nodes']);
+						$details = $driver->getNodegroup($entity);
+						$nodegroup = $this->parseExpression($details['expression'], $use_cache);
+						$list = $nodegroup['nodes'];
 					}
 					break;
 				default:
@@ -96,7 +96,7 @@ class NodegroupsApiExpression {
 		$nodes = array_diff($entities, $entities_exclude);
 
 		return array(
-			'nodegroups' => $nodegroups,
+			'nodegroups' => array_values($nodegroups),
 			'nodes' => $nodes,
 		);
 	}
