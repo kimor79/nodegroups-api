@@ -291,19 +291,19 @@ class NodegroupsApiDriver {
 		$save = array();
 		$save_questions = array();
 
-		foreach($children as $t_child) {
-			$child = $this->stripAt($t_child);
+		while(list($key, $child) = each($children)) {
+			$children[$key] = $this->stripAt($child);
 			$add[] = &$nodegroup;
-			$add[] = &$child;
+			$add[] = &$children[$key];
 			$add_questions[] = '(?, ?)';
 			$binds .= 's';
-			$save[] = &$child;
+			$save[] = &$children[$key];
 			$save_questions[] = '?';
 		}
 
 		if(!empty($add)) {
 			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
-			$query_add .= implode(',', $add_questions);
+			$query_add .= implode(', ', $add_questions);
 
 			$st = $this->mysql->prepare($query_add);
 			if(!$st) {
@@ -370,18 +370,18 @@ class NodegroupsApiDriver {
 		$save = array();
 		$save_questions = array();
 
-		foreach($nodes as $node) {
+		while(list($key, $node) = each($nodes)) {
 			$add[] = &$nodegroup;
-			$add[] = &$node;
+			$add[] = &$nodes[$key];
 			$add_questions[] = '(?, ?)';
 			$binds .= 's';
-			$save[] = &$node;
+			$save[] = &$nodes[$key];
 			$save_questions[] = '?';
 		}
 
 		if(!empty($add)) {
 			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
-			$query_add .= implode(',', $add_questions);
+			$query_add .= implode(', ', $add_questions);
 
 			$st = $this->mysql->prepare($query_add);
 			if(!$st) {
