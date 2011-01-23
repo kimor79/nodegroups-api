@@ -65,7 +65,11 @@ if(!array_key_exists($config['driver'], $drivers)) {
 require_once('nodegroups_api/v1/drivers/' . $drivers[$config['driver']]);
 
 try {
-	$driver = new NodegroupsApiDriver();
+	if(!isset($slave_okay)) {
+		$slave_okay = false;
+	}
+
+	$driver = new NodegroupsApiDriver($slave_okay);
 } catch (Exception $e) {
 	$api->setParameters();
 	$api->sendHeaders();

@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 **/
 
+$slave_okay = true;
+
 require_once('nodegroups_api/v1/includes/init_records.php');
 
 $api->setParameters();

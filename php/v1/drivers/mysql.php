@@ -34,9 +34,8 @@ class NodegroupsApiDriver {
 	protected $error = '';
 	private $mysql;
 	private $prefix = '';
-	public $slave_okay = false;
 
-	public function __construct() {
+	public function __construct($slave_okay = false) {
 		global $config;
 
 		$database = 'nodegroups';
