@@ -78,7 +78,7 @@ if(empty($nodegroups)) {
 // See the comments at
 // http://php.net/manual/en/function.array-unique.php
 // as to why this is faster than array_unique()
-$nodes = array_merge(array_flip(array_flip($nodegroups)));
+$nodegroups = array_merge(array_flip(array_flip($nodegroups)));
 
 if($api->getParameter('sortDir') == 'desc') {
 	rsort($nodegroups);
