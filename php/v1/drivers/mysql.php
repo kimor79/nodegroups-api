@@ -235,12 +235,31 @@ class NodegroupsApiDriver {
 
 	/**
 	 * Get list of nodegroups for a node
-	 * @param string $node
+	 * @param mixed $node
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodegroupsFromNode($node) {
+	public function getNodegroupsFromNode($input) {
 		$query = 'SELECT `nodegroup` FROM `' . $this->prefix . 'nodes`';
-		$query .= ' WHERE `node` = ?';
+		$query .= ' WHERE `node` IN (';
+
+		if(is_array($input)) {
+			$nodes = $input;
+		} else {
+			$nodes = array($input);
+		}
+
+		$binds = '';
+		$refs = array();
+		$questions = array();
+
+		while(list($node, $junk) = each($nodes)) {
+			$binds .= 's';
+			$refs[] = &$nodes[$node];
+			$questions[] = '?';
+		}
+
+		$query .= implode(',', $questions);
+		$query .= ')';
 
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
@@ -248,7 +267,9 @@ class NodegroupsApiDriver {
 			return false;
 		}
 
-		if($st->bind_param('s', &$node)) {
+		array_unshift($refs, $binds);
+
+		if(call_user_func_array(array($st, 'bind_param'), $refs)) {
 			if($st->execute()) {
 				if($st->store_result()) {
 					$result = $st->result_metadata();
@@ -275,14 +296,32 @@ class NodegroupsApiDriver {
 
 	/**
 	 * Get a nodes from a nodegroup
-	 * @param string $nodegroup
+	 * @param mixed $nodegroup
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodesFromNodegroup($nodegroup) {
-		$nodegroup = $this->stripAt($nodegroup);
-
+	public function getNodesFromNodegroup($input) {
 		$query = 'SELECT `node` FROM `' . $this->prefix . 'nodes`';
-		$query .= ' WHERE `nodegroup` = ?';
+		$query .= ' WHERE `nodegroup` IN (';
+
+		if(is_array($input)) {
+			$nodegroups = $input;
+		} else {
+			$nodegroups = array($input);
+		}
+
+		$binds = '';
+		$refs = array();
+		$questions = array();
+
+		while(list($key, $nodegroup) = each($nodegroups)) {
+			$nodegroups[$key] = $this->stripAt($nodegroup);
+			$refs[] = &$nodegroups[$key];
+			$binds .= 's';
+			$questions[] = '?';
+		}
+
+		$query .= implode(',', $questions);
+		$query .= ')';
 
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
@@ -290,7 +329,9 @@ class NodegroupsApiDriver {
 			return false;
 		}
 
-		if($st->bind_param('s', &$nodegroup)) {
+		array_unshift($refs, $binds);
+
+		if(call_user_func_array(array($st, 'bind_param'), $refs)) {
 			if($st->execute()) {
 				if($st->store_result()) {
 					$result = $st->result_metadata();

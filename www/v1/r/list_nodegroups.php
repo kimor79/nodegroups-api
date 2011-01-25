@@ -57,17 +57,12 @@ if(!empty($errors)) {
 
 $input = $api->sanitizeInput($input, $sanitize);
 
-$nodegroups = array();
+$nodegroups = $driver->getNodegroupsFromNode($input['node']);
 
-foreach($input['node'] as $node) {
-	$t_nodegroups = $driver->getNodegroupsFromNode($node);
-	if(!is_array($t_nodegroups)) {
-		$api->sendHeaders();
-		$api->showOutput(array(), 0, 500, $driver->error());
-		exit(0);
-	}
-
-	$nodegroups = array_merge($nodegroups, $t_nodegroups);
+if(!is_array($nodegroups)) {
+	$api->sendHeaders();
+	$api->showOutput(array(), 0, 500, $driver->error());
+	exit(0);
 }
 
 if(empty($nodegroups)) {
