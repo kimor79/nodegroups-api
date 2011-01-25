@@ -34,7 +34,8 @@ $slave_okay = true;
 require_once('nodegroups_api/v1/includes/init_records.php');
 
 $api->setParameters();
-$input = array_merge($_GET, $_POST);
+$get = $api->setInput($_GET);
+$input = array_merge($get, $_POST);
 
 $required = array(
 	'node' => '_multi_',
