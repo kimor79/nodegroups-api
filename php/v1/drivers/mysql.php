@@ -234,6 +234,46 @@ class NodegroupsApiDriver {
 	}
 
 	/**
+	 * Get list of nodegroups for a node
+	 * @param string $node
+	 * @return mixed array of nodes (which may be empty) or false
+	 */
+	public function getNodegroupsFromNode($node) {
+		$query = 'SELECT `nodegroup` FROM `' . $this->prefix . 'nodes`';
+		$query .= ' WHERE `node` = ?';
+
+		$st = $this->mysql->prepare($query);
+		if(!$st) {
+			$this->error = $this->mysql->error;
+			return false;
+		}
+
+		if($st->bind_param('s', &$node)) {
+			if($st->execute()) {
+				if($st->store_result()) {
+					$result = $st->result_metadata();
+					if($result) {
+						if($st->bind_result($group)) {
+							$groups = array();
+							while($st->fetch()) {
+								$groups[] = $group;
+							}
+
+							return $groups;
+						}
+					}
+				}
+			}
+		}
+				
+		if($st->errno) {
+			$this->error = $st->error;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Get a nodes from a nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array of nodes (which may be empty) or false
