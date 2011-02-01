@@ -58,7 +58,8 @@ if(!empty($errors)) {
 	exit(0);
 }
 
-if(!array_key_exists('expression', $input) && !array_key_exists('nodegroup', $input)) {
+if(!array_key_exists('expression', $input)
+		&& !array_key_exists('nodegroup', $input)) {
 	$api->sendHeaders();
 	$api->showOutput(array(), 0, 400, 'Missing expression or nodegroup');
 	exit(0);
@@ -96,7 +97,8 @@ if(array_key_exists('nodegroup', $input)) {
 			$details = $driver->getNodegroup($nodegroup);
 			if(!is_array($details)) {
 				$api->sendHeaders();
-				$api->showOutput(array(), 0, 500, $driver->error());
+				$api->showOutput(array(), 0, 500,
+					$driver->error());
 				exit(0);
 			}
 
@@ -104,10 +106,12 @@ if(array_key_exists('nodegroup', $input)) {
 				continue;
 			}
 
-			$parsed = $ngexpr->parseExpression($details['expression'], false);
+			$parsed = $ngexpr->parseExpression(
+				$details['expression'], false);
 			if(empty($parsed)) {
 				$api->sendHeaders();
-				$api->showOutput(array(), 0, 500, 'Unable to parse nodegroup: ' . $nodegroup);
+				$api->showOutput(array(), 0, 500,
+					'Unable to parse ' . $nodegroup);
 				exit(0);
 			}
 
@@ -116,7 +120,6 @@ if(array_key_exists('nodegroup', $input)) {
 			$nodes = array_merge($nodes, $t_nodes);
 		}
 	}
-
 }
 
 if(empty($nodes)) {
@@ -139,7 +142,9 @@ if($api->getParameter('sortDir') == 'asc') {
 $total = count($nodes);
 
 if($api->getParameter('numResults') > 0) {
-	$sliced = array_slice($nodes, $api->getParameter('startIndex'), $api->getParameter('numResults'));
+	$sliced = array_slice($nodes,
+		$api->getParameter('startIndex'),
+		$api->getParameter('numResults'));
 } else {
 	$sliced = array_slice($nodes, $api->getParameter('startIndex'));
 }

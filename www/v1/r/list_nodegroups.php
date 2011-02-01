@@ -85,7 +85,9 @@ if($api->getParameter('sortDir') == 'desc') {
 $total = count($nodegroups);
 
 if($api->getParameter('numResults') > 0) {
-	$sliced = array_slice($nodegroups, $api->getParameter('startIndex'), $api->getParameter('numResults'));
+	$sliced = array_slice($nodegroups,
+		$api->getParameter('startIndex'),
+		$api->getParameter('numResults'));
 } else {
 	$sliced = array_slice($nodegroups, $api->getParameter('startIndex'));
 }
