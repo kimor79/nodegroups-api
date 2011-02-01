@@ -34,9 +34,12 @@ class NodegroupsApiDriverMySQL {
 	protected $error = '';
 	private $mysql;
 	private $prefix = '';
+	protected $slave_okay = false;
 
 	public function __construct($slave_okay = false) {
 		global $config;
+
+		$this->slave_okay = $slave_okay;
 
 		$database = $this->getConfig('database', 'nodegroups');
 		$host = $this->getConfig('host', 'localhost');
@@ -145,14 +148,14 @@ class NodegroupsApiDriverMySQL {
 	 * @return string
 	 */
 	protected function getConfig($key ='', $default = '') {
-		global $config, $slave_okay;
+		global $config;
 
 		if(!array_key_exists('mysql', $config)) {
 			return $default;
 		}
 
 		$type = 'rw' . $key;
-		if($slave_okay) {
+		if($this->slave_okay) {
 			$type = 'ro' . $key;
 		}
 
