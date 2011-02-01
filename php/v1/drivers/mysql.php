@@ -38,57 +38,12 @@ class NodegroupsApiDriverMySQL {
 	public function __construct($slave_okay = false) {
 		global $config;
 
-		$database = 'nodegroups';
-		$host = 'localhost';
-		$password = '';
-		$type = 'rw';
-		$user = '';
+		$database = $this->getConfig('database', 'nodegroups');
+		$host = $this->getConfig('host', 'localhost');
+		$password = $this->getConfig('password', '');
+		$user = $this->getConfig('user', '');
 
-		if($slave_okay) {
-			$type = 'ro';
-		}
-
-		if(array_key_exists('mysql', $config)) {
-			if(array_key_exists('database', $config['mysql'])) {
-				$database = $config['mysql']['database'];
-			}
-
-			if(array_key_exists($type . '_database', $config['mysql'])) {
-				$database = $config['mysql'][$type . '_database'];
-			}
-
-			if(array_key_exists('host', $config['mysql'])) {
-				$host = $config['mysql']['host'];
-			}
-
-			if(array_key_exists($type . '_host', $config['mysql'])) {
-				$host = $config['mysql'][$type . '_host'];
-			}
-
-			if(array_key_exists('password', $config['mysql'])) {
-				$password = $config['mysql']['password'];
-			}
-
-			if(array_key_exists($type . '_password', $config['mysql'])) {
-				$password = $config['mysql'][$type . '_password'];
-			}
-
-			if(array_key_exists('prefix', $config['mysql'])) {
-				$this->prefix = $config['mysql']['prefix'];
-			}
-
-			if(array_key_exists($type . '_prefix', $config['mysql'])) {
-				$prefix = $config['mysql'][$type . '_prefix'];
-			}
-
-			if(array_key_exists('user', $config['mysql'])) {
-				$user = $config['mysql']['user'];
-			}
-
-			if(array_key_exists($type . '_user', $config['mysql'])) {
-				$user = $config['mysql'][$type . '_user'];
-			}
-		}
+		$this->prefix = $this->getConfig('prefix', '');
 
 		$this->mysql = new mysqli($host, $user, $password, $database);
 
@@ -182,6 +137,34 @@ class NodegroupsApiDriverMySQL {
 	 */
 	public function error() {
 		return $this->error;
+	}
+
+	/** Get a config value
+	 * @param string $key
+	 * @param string $default
+	 * @return string
+	 */
+	protected function getConfig($key ='', $default = '') {
+		global $config, $slave_okay;
+
+		if(!array_key_exists('mysql', $config)) {
+			return $default;
+		}
+
+		$type = 'rw' . $key;
+		if($slave_okay) {
+			$type = 'ro' . $key;
+		}
+
+		if(array_key_exists($type, $config['mysql'])) {
+			return $config['mysql'][$type];
+		}
+
+		if(array_key_exists($key, $config['mysql'])) {
+			return $config['mysql'][$key];
+		}
+
+		return $default;
 	}
 
 	/**
