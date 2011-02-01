@@ -53,23 +53,29 @@ if(!array_key_exists('driver', $config)) {
 	exit(0);
 }
 
-require_once('nodegroups_api/v1/includes/drivers.php');
-
-if(!array_key_exists($config['driver'], $drivers)) {
+if(!array_key_exists('file', $config['driver'])) {
 	$api->setParameters();
 	$api->sendHeaders();
-	$api->showOutput(500, 'No such driver: ' . $config['driver']);
+	$api->showOutput(500, 'No driver file configured');
 	exit(0);
 }
 
-require_once('nodegroups_api/v1/drivers/' . $drivers[$config['driver']]);
+if(!array_key_exists('class', $config['driver'])) {
+	$api->setParameters();
+	$api->sendHeaders();
+	$api->showOutput(500, 'No driver class configured');
+	exit(0);
+}
+
+require_once($config['driver']['file']);
 
 try {
 	if(!isset($slave_okay)) {
 		$slave_okay = false;
 	}
 
-	$driver = new NodegroupsApiDriver($slave_okay);
+	$driver_class = $config['driver']['class'];
+	$driver = new $driver_class($slave_okay);
 } catch (Exception $e) {
 	$api->setParameters();
 	$api->sendHeaders();
