@@ -83,19 +83,17 @@ if(array_key_exists('expression', $input)) {
 }
 
 if(array_key_exists('nodegroup', $input)) {
-	foreach($input['nodegroup'] as $nodegroup) {
-		if($use_cache) {
-			$t_nodes = $driver->getNodesFromNodegroup(
-				$input['nodegroup']);
-			if(!is_array($t_nodes)) {
-				$api->sendHeaders();
-				$api->showOutput(array(), 0, 500,
-					$driver->error());
-				exit(0);
-			}
+	if($use_cache) {
+		$t_nodes = $driver->getNodesFromNodegroup($input['nodegroup']);
+		if(!is_array($t_nodes)) {
+			$api->sendHeaders();
+			$api->showOutput(array(), 0, 500, $driver->error());
+			exit(0);
+		}
 
-			$nodes = array_merge($nodes, $t_nodes);
-		} else {
+		$nodes = array_merge($nodes, $t_nodes);
+	} else {
+		foreach($input['nodegroup'] as $nodegroup) {
 			$details = $driver->getNodegroup($nodegroup);
 			if(!is_array($details)) {
 				$api->sendHeaders();
