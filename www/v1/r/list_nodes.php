@@ -47,7 +47,7 @@ $optional = array(
 
 $sanitize = array(
 	'expression' => 'gpcSlash',
-	'nodegroup' => '_multi_',
+	'nodegroup' => '_multi_gpcSlash',
 );
 
 $errors = $api->validateInput($input, $required, $optional);
