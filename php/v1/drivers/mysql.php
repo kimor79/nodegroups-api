@@ -56,6 +56,10 @@ class NodegroupsApiDriverMySQL {
 		}
 	}
 
+	public function __deconstruct() {
+		$this->mysql->close();
+	}
+
 	/**
 	 * Add a nodegroup
 	 * @param string $nodegroup
@@ -375,6 +379,7 @@ class NodegroupsApiDriverMySQL {
 				$this->error = $st->error;
 			}
 
+			$st->close();
 			return false;
 		}
 
@@ -383,6 +388,7 @@ class NodegroupsApiDriverMySQL {
 				$this->error = $st->error;
 			}
 
+			$st->close();
 			return false;
 		}
 
@@ -391,6 +397,7 @@ class NodegroupsApiDriverMySQL {
 				$this->error = $st->error;
 			}
 
+			$st->close();
 			return false;
 		}
 
@@ -400,6 +407,7 @@ class NodegroupsApiDriverMySQL {
 				$this->error = $st->error;
 			}
 
+			$st->close();
 			return false;
 		}
 
@@ -419,6 +427,7 @@ class NodegroupsApiDriverMySQL {
 				$records[] = $details;
 			}
 
+			$st->close();
 			return $records;
 		}
 
@@ -426,6 +435,7 @@ class NodegroupsApiDriverMySQL {
 			$this->error = $st->error;
 		}
 
+		$st->close();
 		return false;
 	}
 
