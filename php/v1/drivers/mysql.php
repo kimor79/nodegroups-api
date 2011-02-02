@@ -191,7 +191,7 @@ class NodegroupsApiDriverMySQL {
 		$query .= ' WHERE `nodegroup` = ?';
 
 		$data = $this->queryRead($query, array('s', &$nodegroup));
-		if($data) {
+		if(is_array($data)) {
 			$details = array();
 			while(list($junk, $record) = each($data)) {
 				$details = $record;
@@ -271,7 +271,7 @@ class NodegroupsApiDriverMySQL {
 		array_unshift($refs, $binds);
 
 		$data = $this->queryRead($query_main, $refs);
-		if($data) {
+		if(is_array($data)) {
 			$nodegroups = array();
 			while(list($junk, $record) = each($data)) {
 				$nodegroups[] = $record['nodegroup'];
@@ -279,7 +279,7 @@ class NodegroupsApiDriverMySQL {
 
 			if(!empty($options)) {
 				$count = $this->queryRead($query_count, $refs);
-				if($count) {
+				if(is_array($count)) {
 					foreach($count as $record) {
 						$this->count = $record['count'];
 					}
@@ -334,7 +334,7 @@ class NodegroupsApiDriverMySQL {
 		array_unshift($refs, $binds);
 
 		$data = $this->queryRead($query_main, $refs);
-		if($data) {
+		if(is_array($data)) {
 			$nodes = array();
 			while(list($junk, $record) = each($data)) {
 				$nodes[] = $record['node'];
@@ -342,7 +342,7 @@ class NodegroupsApiDriverMySQL {
 
 			if(!empty($options)) {
 				$count = $this->queryRead($query_count, $refs);
-				if($count) {
+				if(is_array($count)) {
 					foreach($count as $record) {
 						$this->count = $record['count'];
 					}
