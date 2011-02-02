@@ -269,50 +269,51 @@ class NodegroupsApiDriverMySQL {
 			$app_where = '(`app` IS NULL OR `app` = ?) AND ';
 		}
 
-		$query = 'SELECT DISTINCT(`nodes`.`nodegroup`)';
-		$query .= sprintf(" FROM `%snodes`", $this->prefix);
+		$query_count = 'SELECT COUNT(DISTINCT(`nodes`.`nodegroup`))';
+		$query_count .= ' AS `count`';
+
+		$query_main = 'SELECT DISTINCT(`nodes`.`nodegroup`)';
+		$query_main .= ' AS `nodegroup`';
+
+		$query = sprintf(" FROM `%snodes`", $this->prefix);
 		$query .= $app_join;
 		$query .= sprintf(" WHERE %s(%s)", $app_where,
 			implode(' OR ', $query_nodes));
 
+		$query_count .= $query;
+		$query_main .= $query;
+
 		if(!empty($options)) {
-			$query .= sprintf(" ORDER BY %s`nodegroup` %s",
+			$query_main .= sprintf(" ORDER BY %s`nodegroup` %s",
 				$app_order, $options['sortDir']);
-			$query .= sprintf(" LIMIT %d, %d",
+			$query_main .= sprintf(" LIMIT %d, %d",
 				$options['startIndex'],
 				($options['numResults']) ?
 					$options['numResults'] :
 					'18446744073709551615');
 		}
 
-		$st = $this->mysql->prepare($query);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			return false;
-		}
-
 		array_unshift($refs, $binds);
 
-		if(call_user_func_array(array($st, 'bind_param'), $refs)) {
-			if($st->execute()) {
-				if($st->store_result()) {
-					$result = $st->result_metadata();
-					if($result) {
-						if($st->bind_result($group)) {
-							$groups = array();
-							while($st->fetch()) {
-								$groups[] = $group;
-							}
+		$data = $this->queryRead($query_main, $refs);
+		if($data) {
+			$nodegroups = array();
+			while(list($junk, $record) = each($data)) {
+				$nodegroups[] = $record['nodegroup'];
+			}
 
-							return $groups;
-						}
+			if(!empty($options)) {
+				$count = $this->queryRead($query_count, $refs);
+				if($count) {
+					foreach($count as $record) {
+						$this->count = $record['count'];
 					}
 				}
+			} else {
+				$this->count = count($nodegroups);
 			}
-		}
-				
-		if($st->errno) {
-			$this->error = $st->error;
+
+			return $nodegroups;
 		}
 
 		return false;
@@ -335,47 +336,117 @@ class NodegroupsApiDriverMySQL {
 			$questions[] = '?';
 		}
 
-		$query = 'SELECT DISTINCT(`node`)';
-		$query .= sprintf(" FROM `%snodes`", $this->prefix);
+		$query_count = 'SELECT COUNT(DISTINCT(`node`)) AS `count`';
+		$query_main = 'SELECT DISTINCT(`node`) AS `node`';
+
+		$query = sprintf(" FROM `%snodes`", $this->prefix);
 		$query .= sprintf(" WHERE `nodegroup` IN (%s)",
 			implode(',', $questions));
 
+		$query_count .= $query;
+		$query_main .= $query;
+
 		if(!empty($options)) {
-			$query .= sprintf(" ORDER BY `node` %s",
+			$query_main .= sprintf(" ORDER BY `node` %s",
 				$options['sortDir']);
-			$query .= sprintf(" LIMIT %d, %d",
+			$query_main .= sprintf(" LIMIT %d, %d",
 				$options['startIndex'],
 				($options['numResults']) ?
 					$options['numResults'] :
 					'18446744073709551615');
 		}
 
+		array_unshift($refs, $binds);
+
+		$data = $this->queryRead($query_main, $refs);
+		if($data) {
+			$nodes = array();
+			while(list($junk, $record) = each($data)) {
+				$nodes[] = $record['node'];
+			}
+
+			if(!empty($options)) {
+				$count = $this->queryRead($query_count, $refs);
+				if($count) {
+					foreach($count as $record) {
+						$this->count = $record['count'];
+					}
+				}
+			} else {
+				$this->count = count($nodegroups);
+			}
+
+			return $nodes;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Perform a read-only query
+	 * @param string $query
+	 * @param array $binds
+	 * @return mixed records or false
+	 */
+	protected function queryRead($query, $binds) {
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
 			$this->error = $this->mysql->error;
 			return false;
 		}
 
-		array_unshift($refs, $binds);
-
-		if(call_user_func_array(array($st, 'bind_param'), $refs)) {
-			if($st->execute()) {
-				if($st->store_result()) {
-					$result = $st->result_metadata();
-					if($result) {
-						if($st->bind_result($node)) {
-							$nodes = array();
-							while($st->fetch()) {
-								$nodes[] = $node;
-							}
-
-							return $nodes;
-						}
-					}
-				}
+		if(!call_user_func_array(array($st, 'bind_param'), $binds)) {
+			if($st->errno) {
+				$this->error = $st->error;
 			}
+
+			return false;
 		}
-				
+
+		if(!$st->execute()) {
+			if($st->errno) {
+				$this->error = $st->error;
+			}
+
+			return false;
+		}
+
+		if(!$st->store_result()) {
+			if($st->errno) {
+				$this->error = $st->error;
+			}
+
+			return false;
+		}
+
+		$result = $st->result_metadata();
+		if(!$result) {
+			if($st->errno) {
+				$this->error = $st->error;
+			}
+
+			return false;
+		}
+
+		$columns = array();
+		foreach($result->fetch_fields() as $field) {
+			$columns[] = &$fields[$field->name];
+		}
+
+		if(call_user_func_array(array($st, 'bind_result'), $columns)) {
+			$records = array();
+			while($st->fetch()) {
+				$details = array();
+				foreach($fields as $field => $value) {
+					$details[$field] = $value;
+				}
+
+				$records[] = $details;
+			}
+
+			return $records;
+		}
+
 		if($st->errno) {
 			$this->error = $st->error;
 		}
