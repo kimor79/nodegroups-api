@@ -190,39 +190,14 @@ class NodegroupsApiDriverMySQL {
 		$query = 'SELECT * FROM `' . $this->prefix . 'nodegroups`';
 		$query .= ' WHERE `nodegroup` = ?';
 
-		$st = $this->mysql->prepare($query);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			return false;
-		}
-
-		if($st->bind_param('s', &$nodegroup)) {
-			if($st->execute()) {
-				if($st->store_result()) {
-					$result = $st->result_metadata();
-					if($result) {
-						$columns = array();
-						foreach($result->fetch_fields() as $field) {
-							$columns[] = &$fields[$field->name];
-						}
-
-						if(call_user_func_array(array($st, 'bind_result'), $columns)) {
-							while($st->fetch()) {
-								$details = array();
-								foreach($fields as $field => $value) {
-									$details[$field] = $value;
-								}
-
-								return $details;
-							}
-						}
-					}
-				}
+		$data = $this->queryRead($query, array('s', &$nodegroup));
+		if($data) {
+			$details = array();
+			while(list($junk, $record) = each($data)) {
+				$details = $record;
 			}
-		}
-				
-		if($st->errno) {
-			$this->error = $st->error;
+
+			return $details;
 		}
 
 		return false;
