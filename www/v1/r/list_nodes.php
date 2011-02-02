@@ -84,7 +84,8 @@ if(array_key_exists('expression', $input)) {
 
 if(array_key_exists('nodegroup', $input)) {
 	if($use_cache) {
-		$t_nodes = $driver->getNodesFromNodegroup($input['nodegroup']);
+		$t_nodes = $driver->getNodesFromNodegroup($input['nodegroup'],
+			array());
 		if(!is_array($t_nodes)) {
 			$api->sendHeaders();
 			$api->showOutput(array(), 0, 500, $driver->error());

@@ -38,13 +38,18 @@ $get = $api->setInput($_GET);
 $input = array_merge($get, $_POST);
 
 $required = array(
-	'node' => '_multi_',
 );
 
-$optional = array();
+$optional = array(
+	'app' => NULL,
+	'node' => '_multi_',
+	'node_re' => '_multi_',
+);
 
 $sanitize = array(
+	'app' => 'gpcSlash',
 	'node' => '_multi_gpcSlash',
+	'node_re' => '_multi_gpcSlash',
 );
 
 $errors = $api->validateInput($input, $required, $optional);
@@ -55,9 +60,31 @@ if(!empty($errors)) {
 	exit(0);
 }
 
+if(!array_key_exists('node', $input) && !array_key_exists('node_re', $input)) {
+	$api->sendHeaders();
+	$api->showOutput(array(), 0, 400, 'Missing node(s)');
+	exit(0);
+}
+
 $input = $api->sanitizeInput($input, $sanitize);
 
-$nodegroups = $driver->getNodegroupsFromNode($input['node']);
+$app = ($input['app']) ? $input['app'] : '';
+$nodes = array('eq' => array(), 're' => array());
+$options = array(
+	'numResults' => $api->getParameter('numResults'),
+	'sortDir' => $api->getParameter('sortDir'),
+	'startIndex' => $api->getParameter('startIndex'),
+);
+
+if(array_key_exists('node', $input)) {
+	$nodes['eq'] = $input['node'];
+}
+
+if(array_key_exists('node_re', $input)) {
+	$nodes['re'] = $input['node_re'];
+}
+
+$nodegroups = $driver->getNodegroupsFromNode($nodes, $app, $options);
 
 if(!is_array($nodegroups)) {
 	$api->sendHeaders();
@@ -71,28 +98,7 @@ if(empty($nodegroups)) {
 	exit(0);
 }
 
-// See the comments at
-// http://php.net/manual/en/function.array-unique.php
-// as to why this is faster than array_unique()
-$nodegroups = array_merge(array_flip(array_flip($nodegroups)));
-
-if($api->getParameter('sortDir') == 'desc') {
-	rsort($nodegroups);
-} else {
-	sort($nodegroups);
-}
-
-$total = count($nodegroups);
-
-if($api->getParameter('numResults') > 0) {
-	$sliced = array_slice($nodegroups,
-		$api->getParameter('startIndex'),
-		$api->getParameter('numResults'));
-} else {
-	$sliced = array_slice($nodegroups, $api->getParameter('startIndex'));
-}
-
 $api->sendHeaders();
-$api->showOutput($sliced, $total);
+$api->showOutput($nodegroups, $driver->getCount(), 200, $driver->error());
 
 ?>

@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class NodegroupsApiDriverMySQL {
 
+	protected $count = 0;
 	protected $error = '';
 	private $mysql;
 	private $prefix = '';
@@ -171,6 +172,14 @@ class NodegroupsApiDriverMySQL {
 	}
 
 	/**
+	 * Get the total from the last query
+	 * @return int
+	 */
+	public function getCount() {
+		return $this->count;
+	}
+
+	/**
 	 * Get a nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
@@ -221,31 +230,60 @@ class NodegroupsApiDriverMySQL {
 
 	/**
 	 * Get list of nodegroups for a node
-	 * @param mixed $node
+	 * @param array $nodes array('re' => array(), 'eq' => array())
+	 * @param string $app
+	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodegroupsFromNode($input) {
-		$query = 'SELECT `nodegroup` FROM `' . $this->prefix . 'nodes`';
-		$query .= ' WHERE `node` IN (';
-
-		if(is_array($input)) {
-			$nodes = $input;
-		} else {
-			$nodes = array($input);
-		}
-
+	public function getNodegroupsFromNode($input, $app, $options) {
+		$app_join = '';
+		$app_order = '';
+		$app_where = '';
 		$binds = '';
 		$refs = array();
-		$questions = array();
+		$query_nodes = array();
+		$questions_eq = array();
 
-		while(list($node, $junk) = each($nodes)) {
+		while(list($node, $junk) = each($input['eq'])) {
 			$binds .= 's';
-			$refs[] = &$nodes[$node];
-			$questions[] = '?';
+			$refs[] = &$input['eq'][$node];
+			$questions_eq[] = '?';
 		}
 
-		$query .= implode(',', $questions);
-		$query .= ')';
+		if(!empty($questions_eq)) {
+			$query_nodes[] = sprintf("`node` IN (%s)",
+				implode(',', $questions_eq));
+		}
+
+		while(list($node, $junk) = each($input['re'])) {
+			$binds .= 's';
+			$refs[] = &$input['re'][$node];
+			$query_nodes[] = '`node` REGEXP ?';
+		}
+
+		if($app) {
+			$binds .= 's';
+			array_unshift($refs, &$app);
+			$app_join = ' LEFT JOIN `order` USING (`nodegroup`)';
+			$app_order = 'IFNULL(`order`, 50), ';
+			$app_where = '(`app` IS NULL OR `app` = ?) AND ';
+		}
+
+		$query = 'SELECT DISTINCT(`nodes`.`nodegroup`)';
+		$query .= sprintf(" FROM `%snodes`", $this->prefix);
+		$query .= $app_join;
+		$query .= sprintf(" WHERE %s(%s)", $app_where,
+			implode(' OR ', $query_nodes));
+
+		if(!empty($options)) {
+			$query .= sprintf(" ORDER BY %s`nodegroup` %s",
+				$app_order, $options['sortDir']);
+			$query .= sprintf(" LIMIT %d, %d",
+				$options['startIndex'],
+				($options['numResults']) ?
+					$options['numResults'] :
+					'18446744073709551615');
+		}
 
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
@@ -282,32 +320,35 @@ class NodegroupsApiDriverMySQL {
 
 	/**
 	 * Get a nodes from a nodegroup
-	 * @param mixed $nodegroup
+	 * @param array $nodegroups
+	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodesFromNodegroup($input) {
-		$query = 'SELECT `node` FROM `' . $this->prefix . 'nodes`';
-		$query .= ' WHERE `nodegroup` IN (';
-
-		if(is_array($input)) {
-			$nodegroups = $input;
-		} else {
-			$nodegroups = array($input);
-		}
-
+	public function getNodesFromNodegroup($input, $options) {
 		$binds = '';
 		$refs = array();
 		$questions = array();
 
-		while(list($key, $nodegroup) = each($nodegroups)) {
-			$nodegroups[$key] = $this->stripAt($nodegroup);
-			$refs[] = &$nodegroups[$key];
+		while(list($nodegroup, $junk) = each($input)) {
 			$binds .= 's';
+			$refs[] = &$input[$nodegroup];
 			$questions[] = '?';
 		}
 
-		$query .= implode(',', $questions);
-		$query .= ')';
+		$query = 'SELECT DISTINCT(`node`)';
+		$query .= sprintf(" FROM `%snodes`", $this->prefix);
+		$query .= sprintf(" WHERE `nodegroup` IN (%s)",
+			implode(',', $questions));
+
+		if(!empty($options)) {
+			$query .= sprintf(" ORDER BY `node` %s",
+				$options['sortDir']);
+			$query .= sprintf(" LIMIT %d, %d",
+				$options['startIndex'],
+				($options['numResults']) ?
+					$options['numResults'] :
+					'18446744073709551615');
+		}
 
 		$st = $this->mysql->prepare($query);
 		if(!$st) {

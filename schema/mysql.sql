@@ -19,3 +19,11 @@ CREATE TABLE IF NOT EXISTS `nodes` (
  UNIQUE KEY (`node`, `nodegroup`),
  CONSTRAINT FOREIGN KEY (`nodegroup`) REFERENCES nodegroups(`nodegroup`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `order` (
+ `nodegroup` VARCHAR(255) NOT NULL,
+ `app` VARCHAR(255) NOT NULL,
+ `order` INT(10) UNSIGNED NOT NULL DEFAULT 50,
+ UNIQUE KEY (`app`, `nodegroup`),
+ CONSTRAINT FOREIGN KEY (`nodegroup`) REFERENCES nodegroups(`nodegroup`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
