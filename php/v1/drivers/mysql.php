@@ -81,27 +81,15 @@ class NodegroupsApiDriverMySQL {
 			$binds .= 's';
 		}
 
-		$st = $this->mysql->prepare($query);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			return false;
-		}
-
 		array_unshift($refs, $binds);
 
-		if(call_user_func_array(array($st, 'bind_param'), $refs)) {
-			if($st->execute()) {
-				if($st->affected_rows == 1) {
-					return true;
-				} else {
-					$this->error = 'More than one row added';
-					return false;
-				}
-			}
+		$status = $this->queryWrite($query, $binds);
+		if($status == 1) {
+			return true;
 		}
 
-		if($st->errno) {
-			$this->error = $st->error;
+		if($status > 1) {
+			$this->error = 'More than one row added';
 		}
 
 		return false;
@@ -118,18 +106,9 @@ class NodegroupsApiDriverMySQL {
 		$query = 'DELETE FROM `' . $this->prefix . 'nodegroups` WHERE ';
 		$query .= '`nodegroup` = ?';
 
-		$st = $this->mysql->prepare($query);
-		if(!$st) {
-			$this->error = $this->mysql->error();
-			return false;
-		}
-
-		if($st->bind_param('s', &$nodegroup)) {
-			if($st->execute()) {
-				if($st->affected_rows > 0) {
-					return true;
-				}
-			}
+		$status = $this->queryWrite($query, array('s', &$nodegroup));
+		if($status !== false) {
+			return true;
 		}
 				
 		if($st->errno) {
@@ -440,6 +419,37 @@ class NodegroupsApiDriverMySQL {
 	}
 
 	/**
+	 * Perform a write query
+	 * @param string $query
+	 * @param array $binds
+	 * @return mixed affected rows or false
+	protected function queryWrite($query, $binds) {
+		$st = $this->mysql->prepare($query);
+		if(!$st) {
+			$this->error = $this->mysql->error;
+			return false;
+		}
+
+		if(!call_user_func_array(array($st, 'bind_param'), $binds)) {
+			if($st->execute()) {
+				if(is_numeric($st->affected_rows)) {
+					$rows = $st->affected_rows;
+
+					$st->close();
+					return $rows;
+				}
+			}
+		}
+
+		if($st->errno) {
+			$this->error = $st->error;
+		}
+
+		$st->close();
+		return false;
+	}
+
+	/**
 	 * Set the list of nodegroups included in a nodegroup
 	 * @param string $nodegroup
 	 * @param array $children
@@ -468,25 +478,10 @@ class NodegroupsApiDriverMySQL {
 			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
 			$query_add .= implode(', ', $add_questions);
 
-			$st = $this->mysql->prepare($query_add);
-			if(!$st) {
-				$this->error = $this->mysql->error;
-				return false;
-			}
-
 			array_unshift($add, $binds . $binds);
 
-			if(call_user_func_array(array($st, 'bind_param'), $add)) {
-				if($st->execute()) {
-					if($st->affected_rows < 1) {
-						$this->error = 'Did not add any children';
-						return false;
-					}
-				}
-			}
-
-			if($st->errno) {
-				$this->error = $st->error;
+			$status = $this->queryWrite($query_add, $add);
+			if($status == false) {
 				return false;
 			}
 		}
@@ -499,20 +494,11 @@ class NodegroupsApiDriverMySQL {
 			$query_delete .= '(' . implode(',', $save_questions) . ')';
 		}
 
-		$st = $this->mysql->prepare($query_delete);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			return false;
-		}
-
 		array_unshift($save, $binds . 's', &$nodegroup);
 
-		if(call_user_func_array(array($st, 'bind_param'), $save)) {
-			if($st->execute()) {
-				if($st->affected_rows >= 0) {
-					return true;
-				}
-			}
+		$status = $this->queryWrite($query_delete, $save);
+		if($status != false) {
+			return true;
 		}
 
 		return false;
@@ -546,25 +532,10 @@ class NodegroupsApiDriverMySQL {
 			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
 			$query_add .= implode(', ', $add_questions);
 
-			$st = $this->mysql->prepare($query_add);
-			if(!$st) {
-				$this->error = $this->mysql->error;
-				return false;
-			}
-
 			array_unshift($add, $binds . $binds);
 
-			if(call_user_func_array(array($st, 'bind_param'), $add)) {
-				if($st->execute()) {
-					if($st->affected_rows < 1) {
-						$this->error = 'Did not add any nodes';
-						return false;
-					}
-				}
-			}
-
-			if($st->errno) {
-				$this->error = $st->error;
+			$status = $this->queryWrite($query_add, $add);
+			if($status == false) {
 				return false;
 			}
 		}
@@ -577,20 +548,11 @@ class NodegroupsApiDriverMySQL {
 			$query_delete .= '(' . implode(',', $save_questions) . ')';
 		}
 
-		$st = $this->mysql->prepare($query_delete);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			return false;
-		}
-
 		array_unshift($save, $binds . 's', &$nodegroup);
 
-		if(call_user_func_array(array($st, 'bind_param'), $save)) {
-			if($st->execute()) {
-				if($st->affected_rows >= 0) {
-					return true;
-				}
-			}
+		$status = $this->queryWrite($query_delete, $save);
+		if($status != false) {
+			return true;
 		}
 
 		return false;
