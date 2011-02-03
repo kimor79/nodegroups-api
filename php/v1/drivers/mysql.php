@@ -475,7 +475,10 @@ class NodegroupsApiDriverMySQL {
 		}
 
 		if(!empty($add)) {
-			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'parent_child` (`parent`, `child`) VALUES ';
+			$query_add = 'INSERT IGNORE INTO';
+			$query_add .= sprintf(" `%sparent_child`",
+				$this->prefix);
+			$query_add .= ' (`parent`, `child`) VALUES ';
 			$query_add .= implode(', ', $add_questions);
 
 			array_unshift($add, $binds . $binds);
@@ -486,12 +489,13 @@ class NodegroupsApiDriverMySQL {
 			}
 		}
 
-		$query_delete = 'DELETE FROM `' . $this->prefix . 'parent_child` WHERE ';
+		$query_delete = sprintf("DELETE FROM `%sparent_child` WHERE ",
+			$this->prefix);
 		$query_delete .= '`parent` = ?';
 
 		if(!empty($save)) {
-			$query_delete .= ' AND `child` NOT IN ';
-			$query_delete .= '(' . implode(',', $save_questions) . ')';
+			$query_delete .= sprintf(" AND `child` NOT IN (%s)",
+				implode(',', $save_questions));
 		}
 
 		array_unshift($save, $binds . 's', &$nodegroup);
@@ -529,7 +533,10 @@ class NodegroupsApiDriverMySQL {
 		}
 
 		if(!empty($add)) {
-			$query_add = 'INSERT IGNORE INTO `' . $this->prefix . 'nodes` (`nodegroup`, `node`) VALUES ';
+			$query_add = 'INSERT IGNORE INTO';
+			$query_add .= sprintf(" `%snodes`",
+				$this->prefix);
+			$query_add .= ' (`nodegroup`, `node`) VALUES ';
 			$query_add .= implode(', ', $add_questions);
 
 			array_unshift($add, $binds . $binds);
@@ -540,12 +547,13 @@ class NodegroupsApiDriverMySQL {
 			}
 		}
 
-		$query_delete = 'DELETE FROM `' . $this->prefix . 'nodes` WHERE ';
+		$query_delete = sprintf("DELETE FROM `%snodes` WHERE ",
+			$this->prefix);
 		$query_delete .= '`nodegroup` = ?';
 
 		if(!empty($save)) {
-			$query_delete .= ' AND `node` NOT IN ';
-			$query_delete .= '(' . implode(',', $save_questions) . ')';
+			$query_delete .= sprintf(" AND `node` NOT IN (%s)",
+				implode(',', $save_questions));
 		}
 
 		array_unshift($save, $binds . 's', &$nodegroup);
