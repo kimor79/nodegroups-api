@@ -35,14 +35,40 @@ class NodegroupsApiExpression {
 	}
 
 	/**
+	 * Parse entity
+	 * @param string $entity
+	 * @param bool $use_cache
+	 * @return array
+	 */
+	protected function parseEntity($entity, $use_cache) {
+		global $driver;
+
+		$first = substr($entity, 0, 1);
+		if($first == '&') {
+			return $this->parseExpression($entity, $use_cache);
+		} elseif($first == '@') {
+			if($use_cache) {
+				return $driver->getNodesFromNodegroup(array(
+					'nodegroup' => $entity));
+			} else {
+				$details = $driver->getNodegroup($entity);
+				$nodegroup = $this->parseExpression(
+					$details['expression'], $use_cache);
+
+				return $nodegroup['nodes'];
+			}
+		}
+
+		return array($entity);
+	}
+
+	/**
 	 * Parse expression
 	 * @param string $expression
 	 * @param bool $use_cache false to recursively parse
 	 * @return array nodes => array(), children => array()
 	 */
 	public function parseExpression($expr = '', $use_cache = true) {
-		global $driver;
-
 		$entities = array();
 		$entities_exclude = array();
 		$nodegroups = array();
@@ -65,26 +91,11 @@ class NodegroupsApiExpression {
 					break;
 			}
 
-			$list = array();
-
-			switch(substr($entity, 0, 1)) {
-				case '&':
-					$list = $this->parseFunction($entity, $use_cache);
-					break;
-				case '@':
-					$nodegroups[$entity] = substr($entity, 1);
-
-					if($use_cache) {
-						$list = $driver->getNodesFromNodegroup($entity, array());
-					} else {
-						$details = $driver->getNodegroup($entity);
-						$nodegroup = $this->parseExpression($details['expression'], $use_cache);
-						$list = $nodegroup['nodes'];
-					}
-					break;
-				default:
-					$list = array($entity);
+			if(substr($entity, 0, 1) == '@') {
+				$nodegroups[$entity] = substr($entity, 1);
 			}
+
+			$list = $this->parseEntity($entity, $use_cache);
 
 			if($negate) {
 				$entities_exclude = array_merge($entities_exclude, $list);
