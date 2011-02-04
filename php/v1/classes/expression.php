@@ -98,7 +98,8 @@ class NodegroupsApiExpression {
 			$list = $this->parseEntity($entity, $use_cache);
 
 			if($negate) {
-				$entities_exclude = array_merge($entities_exclude, $list);
+				$entities_exclude = array_merge(
+					$entities_exclude, $list);
 			} else {
 				$entities = array_merge($entities, $list);
 			}
@@ -217,7 +218,8 @@ class NodegroupsApiExpression {
 	 */
 	public function validateExpression($input) {
 		if(strpos($input, '&regex') !== false) {
-		// TODO: figure out how to still validate the rest of the expression
+		// TODO: figure out how to still validate
+		// the rest of the expression
 			return true;
 		}
 
@@ -228,7 +230,8 @@ class NodegroupsApiExpression {
 			return false;
 		}
 
-		// Unbalanced parens and parens without functions (or visa versa)
+		// Unbalanced parens and parens
+		// without functions (or visa versa)
 		$ampersands = substr_count($input, '&');
 		$open_parens = substr_count($input, '(');
 		$close_parens = substr_count($input, ')');
@@ -243,7 +246,8 @@ class NodegroupsApiExpression {
 
 		// Test for only valid function names
 		if(strpos($input, '&') !== false) {
-			$function_total = preg_match_all('/\&[^\(]*\(/', $input, $functions);
+			$function_total = preg_match_all('/\&[^\(]*\(/',
+				$input, $functions);
 			if($function_total == 0) {
 				return false;
 			}
@@ -263,7 +267,8 @@ class NodegroupsApiExpression {
 		}
 
 		// Test for only valid meta character sequences
-		if(preg_match_all('/[^-\w\.][^-\w\.]/', $input, $double_matches)) {
+		if(preg_match_all('/[^-\w\.][^-\w\.]/',
+				$input, $double_matches)) {
 			foreach($double_matches[0] as $double) {
 				switch($double) {
 					case ',#':
