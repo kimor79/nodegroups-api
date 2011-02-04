@@ -289,9 +289,10 @@ class NodegroupsApiDriverMySQL {
 		$refs = array();
 		$questions = array();
 
-		while(list($nodegroup, $junk) = each($input)) {
+		while(list($key, $group) = each($input)) {
+			$input[$key] = $this->stripAt($group);
 			$binds .= 's';
-			$refs[] = &$input[$nodegroup];
+			$refs[] = &$input[$key];
 			$questions[] = '?';
 		}
 
