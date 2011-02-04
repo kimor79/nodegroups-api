@@ -201,6 +201,7 @@ class NodegroupsApiDriverMySQL {
 		$binds = '';
 		$limit = false;
 		$refs = array();
+		$query_nodegroups = array();
 		$query_nodes = array();
 		$questions_eq = array();
 
@@ -239,6 +240,18 @@ class NodegroupsApiDriverMySQL {
 		$query .= $app_join;
 		$query .= sprintf(" WHERE %s(%s)", $app_where,
 			implode(' OR ', $query_nodes));
+
+		if(array_key_exists('nodegroup_re', $options)) {
+			while(list($group, $junk) =
+					each($options['nodegroup_re'])) {
+				$binds .= 's';
+				$refs[] = &$options['nodegroup_re'][$group];
+				$query_nodegroups[] = '`nodegroup` REGEXP ?';
+			}
+
+			$query .= sprintf(" AND (%s)",
+				implode(' OR ', $query_nodegroups));
+		}
 
 		$query_count .= $query;
 		$query_main .= $query;

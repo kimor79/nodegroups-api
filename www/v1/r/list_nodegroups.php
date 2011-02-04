@@ -44,12 +44,14 @@ $optional = array(
 	'app' => NULL,
 	'node' => '_multi_',
 	'node_re' => '_multi_',
+	'nodegroup_re' => '_multi_',
 );
 
 $sanitize = array(
 	'app' => 'gpcSlash',
 	'node' => '_multi_gpcSlash',
 	'node_re' => '_multi_gpcSlash',
+	'nodegroup_re' => '_multi_gpcSlash',
 );
 
 $errors = $api->validateInput($input, $required, $optional);
@@ -75,6 +77,10 @@ $options = array(
 	'sortDir' => $api->getParameter('sortDir'),
 	'startIndex' => $api->getParameter('startIndex'),
 );
+
+if(array_key_exists('nodegroup_re', $input)) {
+	$options['nodegroup_re'] = $input['nodegroup_re'];
+}
 
 if(array_key_exists('node', $input)) {
 	$nodes['eq'] = $input['node'];
