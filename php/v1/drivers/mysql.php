@@ -199,6 +199,7 @@ class NodegroupsApiDriverMySQL {
 		$app_order = '';
 		$app_where = '';
 		$binds = '';
+		$limit = false;
 		$refs = array();
 		$query_nodes = array();
 		$questions_eq = array();
@@ -242,9 +243,13 @@ class NodegroupsApiDriverMySQL {
 		$query_count .= $query;
 		$query_main .= $query;
 
-		if(!empty($options)) {
+		if(array_key_exists('sortDir', $options)) {
 			$query_main .= sprintf(" ORDER BY %s`nodegroup` %s",
 				$app_order, $options['sortDir']);
+		}
+
+		if(array_key_exists('startIndex', $options)) {
+			$limit = true;
 			$query_main .= sprintf(" LIMIT %d, %d",
 				$options['startIndex'],
 				($options['numResults']) ?
@@ -261,7 +266,7 @@ class NodegroupsApiDriverMySQL {
 				$nodegroups[] = $record['nodegroup'];
 			}
 
-			if(!empty($options)) {
+			if($limit) {
 				$count = $this->queryRead($query_count, $refs);
 				if(is_array($count)) {
 					foreach($count as $record) {
@@ -286,6 +291,7 @@ class NodegroupsApiDriverMySQL {
 	 */
 	public function getNodesFromNodegroup($input, $options = array()) {
 		$binds = '';
+		$limit = false;
 		$refs = array();
 		$questions = array();
 
@@ -306,9 +312,13 @@ class NodegroupsApiDriverMySQL {
 		$query_count .= $query;
 		$query_main .= $query;
 
-		if(!empty($options)) {
+		if(array_key_exists('sortDir', $options)) {
 			$query_main .= sprintf(" ORDER BY `node` %s",
 				$options['sortDir']);
+		}
+
+		if(array_key_exists('startIndex', $options)) {
+			$limit = true;
 			$query_main .= sprintf(" LIMIT %d, %d",
 				$options['startIndex'],
 				($options['numResults']) ?
@@ -325,7 +335,7 @@ class NodegroupsApiDriverMySQL {
 				$nodes[] = $record['node'];
 			}
 
-			if(!empty($options)) {
+			if($limit) {
 				$count = $this->queryRead($query_count, $refs);
 				if(is_array($count)) {
 					foreach($count as $record) {
