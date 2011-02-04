@@ -131,7 +131,7 @@ class NodegroupsApiDriverMySQL {
 	 * @param string $default
 	 * @return string
 	 */
-	protected function getConfig($key ='', $default = '') {
+	protected function getConfig($key = '', $default = '') {
 		global $config;
 
 		if(!array_key_exists('mysql', $config)) {
@@ -193,7 +193,8 @@ class NodegroupsApiDriverMySQL {
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodegroupsFromNode($input, $app, $options) {
+	public function getNodegroupsFromNode($input,
+			$app = '', $options = array()) {
 		$app_join = '';
 		$app_order = '';
 		$app_where = '';
@@ -283,7 +284,7 @@ class NodegroupsApiDriverMySQL {
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodesFromNodegroup($input, $options) {
+	public function getNodesFromNodegroup($input, $options = array()) {
 		$binds = '';
 		$refs = array();
 		$questions = array();
