@@ -49,7 +49,7 @@ class NodegroupsApiExpression {
 		} elseif($first == '@') {
 			if($use_cache) {
 				return $driver->getNodesFromNodegroup(array(
-					'nodegroup' => $entity));
+					$entity));
 			} else {
 				$details = $driver->getNodegroup($entity);
 				$nodegroup = $this->parseExpression(
