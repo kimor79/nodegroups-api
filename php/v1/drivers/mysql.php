@@ -202,6 +202,7 @@ class NodegroupsApiDriverMySQL {
 		$app_order = '';
 		$app_where = '';
 		$binds = '';
+		$fields_join = '';
 		$limit = false;
 		$refs = array();
 		$query_fields = array();
@@ -254,13 +255,16 @@ class NodegroupsApiDriverMySQL {
 			}
 
 			if(!empty($query_fields)) {
+				$fields_join = ' LEFT JOIN `nodegroups`';
+				$fields_join .= ' USING (`nodegroup`)';
+
 				$query_main .= sprintf(", %s",
 					implode(', ', $query_fields));
 			}
 		}
 
 		$query = sprintf(" FROM `%snodes`", $this->prefix);
-		$query .= $app_join;
+		$query .= $app_join . $fields_join;
 		$query .= sprintf(" WHERE %s(%s)", $app_where,
 			implode(' OR ', $query_nodes));
 
