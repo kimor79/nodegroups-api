@@ -150,7 +150,12 @@ if($api->getParameter('numResults') > 0) {
 	$sliced = array_slice($nodes, $api->getParameter('startIndex'));
 }
 
+$records = array();
+while(list($junk, $node) = each($sliced)) {
+	$records[] = array('node' => $node);
+}
+
 $api->sendHeaders();
-$api->showOutput($sliced, $total);
+$api->showOutput($records, $total);
 
 ?>
