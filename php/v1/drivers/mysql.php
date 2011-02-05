@@ -213,7 +213,6 @@ class NodegroupsApiDriverMySQL {
 		$fields = array(
 			'description' => '`description`',
 			'expression' => '`expression`',
-			'order' => 'IFNULL(`order`, 50) AS `order`',
 		);
 
 		while(list($node, $junk) = each($input['eq'])) {
@@ -234,6 +233,8 @@ class NodegroupsApiDriverMySQL {
 		}
 
 		if($app) {
+			$fields['order'] = 'IFNULL(`order`, 50) AS `order`';
+
 			$binds .= 's';
 			array_unshift($refs, &$app);
 			$app_join = ' LEFT JOIN `order` USING (`nodegroup`)';
