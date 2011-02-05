@@ -201,9 +201,16 @@ class NodegroupsApiDriverMySQL {
 		$binds = '';
 		$limit = false;
 		$refs = array();
+		$query_fields = array();
 		$query_nodegroups = array();
 		$query_nodes = array();
 		$questions_eq = array();
+
+		$fields = array(
+			'description' => '`description`',
+			'expression' => '`expression`',
+			'order' => 'IFNULL(`order`, 50) AS `order`',
+		);
 
 		while(list($node, $junk) = each($input['eq'])) {
 			$binds .= 's';
@@ -235,6 +242,19 @@ class NodegroupsApiDriverMySQL {
 
 		$query_main = 'SELECT DISTINCT(`nodes`.`nodegroup`)';
 		$query_main .= ' AS `nodegroup`';
+
+		if(array_key_exists('outputFields', $options)) {
+			foreach($fields as $key => $field) {
+				if($options['outputFields'][$key]) {
+					$query_fields[] = $field;
+				}
+			}
+
+			if(!empty($query_fields)) {
+				$query_main .= sprintf(", %s",
+					implode(', ', $query_fields));
+			}
+		}
 
 		$query = sprintf(" FROM `%snodes`", $this->prefix);
 		$query .= $app_join;
@@ -276,7 +296,7 @@ class NodegroupsApiDriverMySQL {
 		if(is_array($data)) {
 			$nodegroups = array();
 			while(list($junk, $record) = each($data)) {
-				$nodegroups[] = $record['nodegroup'];
+				$nodegroups[] = $record;
 			}
 
 			if($limit) {

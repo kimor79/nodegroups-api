@@ -78,6 +78,11 @@ $options = array(
 	'startIndex' => $api->getParameter('startIndex'),
 );
 
+$output_fields = $api->getParameter('outputFields');
+if(!empty($output_fields)) {
+	$options['outputFields'] = $output_fields;
+}
+
 if(array_key_exists('nodegroup_re', $input)) {
 	$options['nodegroup_re'] = $input['nodegroup_re'];
 }
