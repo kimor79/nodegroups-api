@@ -35,6 +35,7 @@ class NodegroupsApiDriverMySQL {
 	protected $error = '';
 	private $mysql;
 	private $prefix = '';
+	protected $query_on_error = false;
 	protected $slave_okay = false;
 
 	public function __construct($slave_okay = false) {
@@ -48,6 +49,8 @@ class NodegroupsApiDriverMySQL {
 		$user = $this->getConfig('user', '');
 
 		$this->prefix = $this->getConfig('prefix', '');
+		$this->query_on_error = $this->getConfig('query_on_error',
+			false);
 
 		$this->mysql = new mysqli($host, $user, $password, $database);
 
@@ -395,12 +398,18 @@ class NodegroupsApiDriverMySQL {
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
 			$this->error = $this->mysql->error;
+			if($this->query_on_error) {
+				$this->error .= ': ' . $query;
+			}
 			return false;
 		}
 
 		if(!call_user_func_array(array($st, 'bind_param'), $binds)) {
 			if($st->errno) {
 				$this->error = $st->error;
+				if($this->query_on_error) {
+					$this->error .= ': ' . $query;
+				}
 			}
 
 			$st->close();
@@ -410,6 +419,9 @@ class NodegroupsApiDriverMySQL {
 		if(!$st->execute()) {
 			if($st->errno) {
 				$this->error = $st->error;
+				if($this->query_on_error) {
+					$this->error .= ': ' . $query;
+				}
 			}
 
 			$st->close();
@@ -419,6 +431,9 @@ class NodegroupsApiDriverMySQL {
 		if(!$st->store_result()) {
 			if($st->errno) {
 				$this->error = $st->error;
+				if($this->query_on_error) {
+					$this->error .= ': ' . $query;
+				}
 			}
 
 			$st->close();
@@ -429,6 +444,9 @@ class NodegroupsApiDriverMySQL {
 		if(!$result) {
 			if($st->errno) {
 				$this->error = $st->error;
+				if($this->query_on_error) {
+					$this->error .= ': ' . $query;
+				}
 			}
 
 			$st->close();
@@ -457,6 +475,9 @@ class NodegroupsApiDriverMySQL {
 
 		if($st->errno) {
 			$this->error = $st->error;
+			if($this->query_on_error) {
+				$this->error .= ': ' . $query;
+			}
 		}
 
 		$st->close();
@@ -472,6 +493,9 @@ class NodegroupsApiDriverMySQL {
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
 			$this->error = $this->mysql->error;
+			if($this->query_on_error) {
+				$this->error .= ': ' . $query;
+			}
 			return false;
 		}
 
@@ -488,6 +512,9 @@ class NodegroupsApiDriverMySQL {
 
 		if($st->errno) {
 			$this->error = $st->error;
+			if($this->query_on_error) {
+				$this->error .= ': ' . $query;
+			}
 		}
 
 		$st->close();
