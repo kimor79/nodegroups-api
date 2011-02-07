@@ -21,7 +21,7 @@ foreach($nodegroups as $nodegroup => $data) {
 $pass = 0;
 
 foreach($tests as $pos => $test) {
-	$parsed = $ngexpr->parseExpression($text['expr']);
+	$parsed = $ngexpr->parseExpression($test['expr']);
 
 	$result = implode(', ', $parsed['nodes']);
 
