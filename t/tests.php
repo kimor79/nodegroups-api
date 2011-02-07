@@ -1,104 +1,104 @@
 <?php
 
 $tests = array(
-	array('expr' => 'foo, bar', 'result' => 'foo, bar'),
-	array('expr' => 'foo, bar, !bar', 'result' => 'foo'),
-	array('expr' => 'foo, bar, #bar', 'result' => 'foo, bar'),
+	array('expr' => 'foo, bar', 'nodes' => 'foo, bar'),
+	array('expr' => 'foo, bar, !bar', 'nodes' => 'foo'),
+	array('expr' => 'foo, bar, #bar', 'nodes' => 'foo, bar'),
 
-	array('expr' => 'foo, !bar, bar', 'result' => 'foo'),
-	array('expr' => 'foo, #bar, bar', 'result' => 'foo, bar'),
+	array('expr' => 'foo, !bar, bar', 'nodes' => 'foo'),
+	array('expr' => 'foo, #bar, bar', 'nodes' => 'foo, bar'),
 
-	array('expr' => 'foo, #bar, !bar', 'result' => 'foo'),
+	array('expr' => 'foo, #bar, !bar', 'nodes' => 'foo'),
 
-	array('expr' => '@a', 'result' => 'a, b, c, d, e, f, g'),
-	array('expr' => '@a, @b', 'result' =>
+	array('expr' => '@a', 'nodes' => 'a, b, c, d, e, f, g'),
+	array('expr' => '@a, @b', 'nodes' =>
 		'a, b, c, d, e, f, g, h, i, j, k, l, m, n'),
-	array('expr' => '@a, @b, !f', 'result' =>
+	array('expr' => '@a, @b, !f', 'nodes' =>
 		'a, b, c, d, e, g, h, i, j, k, l, m, n'),
-	array('expr' => '@a, @b, #!f', 'result' =>
+	array('expr' => '@a, @b, #!f', 'nodes' =>
 		'a, b, c, d, e, f, g, h, i, j, k, l, m, n'),
 
-	array('expr' => '@a, !@b', 'result' => 'a, b, c, d, e, f, g'),
-	array('expr' => '@a, !@d', 'result' => 'c, d, e, f, g'),
-	array('expr' => '@g, !@a, !@b', 'result' =>
+	array('expr' => '@a, !@b', 'nodes' => 'a, b, c, d, e, f, g'),
+	array('expr' => '@a, !@d', 'nodes' => 'c, d, e, f, g'),
+	array('expr' => '@g, !@a, !@b', 'nodes' =>
 		'o, p, q, r, s, t, u, v, w, x, y, z'),
-	array('expr' => '@g, !@a, !@d', 'result' =>
+	array('expr' => '@g, !@a, !@d', 'nodes' =>
 		'j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y'),
-	array('expr' => '@g, !@a, !@h', 'result' =>
+	array('expr' => '@g, !@a, !@h', 'nodes' =>
 		'k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z'),
-	array('expr' => '@g, !@h, !@a', 'result' =>
+	array('expr' => '@g, !@h, !@a', 'nodes' =>
 		'k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z'),
 
-	array('expr' => '&intersect(@a, @b)', 'result' => ''),
-	array('expr' => '&union(@a, @b)', 'result' =>
+	array('expr' => '&intersect(@a, @b)', 'nodes' => ''),
+	array('expr' => '&union(@a, @b)', 'nodes' =>
 		'a, b, c, d, e, f, g, h, i, j, k, l, m, n'),
-	array('expr' => '&diff(@a, @b)', 'result' => 'a, b, c, d, e, f, g'),
+	array('expr' => '&diff(@a, @b)', 'nodes' => 'a, b, c, d, e, f, g'),
 
-	array('expr' => '&intersect(@a, @d)', 'result' => 'a, b'),
-	array('expr' => '&union(@a, @d)', 'result' =>
+	array('expr' => '&intersect(@a, @d)', 'nodes' => 'a, b'),
+	array('expr' => '&union(@a, @d)', 'nodes' =>
 		'a, b, c, d, e, f, g, a, h, 1, b, i, 2, z'),
-	array('expr' => '&diff(@a, @d)', 'result' => 'c, d, e, f, g'),
+	array('expr' => '&diff(@a, @d)', 'nodes' => 'c, d, e, f, g'),
 
-	array('expr' => '&intersect(@a, @d, @e)', 'result' => ''),
-	array('expr' => '&intersect(@a, @d, @f)', 'result' => 'a, b'),
-	array('expr' => '&union(@a, @d, @e)', 'result' =>
+	array('expr' => '&intersect(@a, @d, @e)', 'nodes' => ''),
+	array('expr' => '&intersect(@a, @d, @f)', 'nodes' => 'a, b'),
+	array('expr' => '&union(@a, @d, @e)', 'nodes' =>
 		'a, b, c, d, e, f, g, a, h, 1, b, i, 2, z, c, 3, t, u, v, w, x'),
-	array('expr' => '&diff(@a, @d, @e)', 'result' => 'd, e, f, g'),
+	array('expr' => '&diff(@a, @d, @e)', 'nodes' => 'd, e, f, g'),
 
-	array('expr' => '&union(@a, foo)', 'result' =>
+	array('expr' => '&union(@a, foo)', 'nodes' =>
 		'a, b, c, d, e, f, g, foo'),
-	array('expr' => '&union(@a, !c)', 'result' => 'a, b, d, e, f, g'),
-	array('expr' => '&union(@a, #!c)', 'result' => 'a, b, c, d, e, f, g'),
+	array('expr' => '&union(@a, !c)', 'nodes' => 'a, b, d, e, f, g'),
+	array('expr' => '&union(@a, #!c)', 'nodes' => 'a, b, c, d, e, f, g'),
 
-	array('expr' => '&intersect(@a, c)', 'result' => 'c'),
-	array('expr' => '&diff(@a, c)', 'result' => 'a, b, d, e, f, g'),
+	array('expr' => '&intersect(@a, c)', 'nodes' => 'c'),
+	array('expr' => '&diff(@a, c)', 'nodes' => 'a, b, d, e, f, g'),
 
-	array('expr' => '&intersect(@a, @d), foo', 'result' => 'a, b, foo'),
-	array('expr' => '&intersect(@a, @d), !b', 'result' => 'a'),
-	array('expr' => '&intersect(@a, @d), #b', 'result' => 'a, b'),
-	array('expr' => '&intersect(@a, @d), #!b', 'result' => 'a, b'),
-	array('expr' => '&intersect(@a, @d), #@d', 'result' => 'a, b'),
-	array('expr' => '&intersect(@a, @d), @d', 'result' =>
+	array('expr' => '&intersect(@a, @d), foo', 'nodes' => 'a, b, foo'),
+	array('expr' => '&intersect(@a, @d), !b', 'nodes' => 'a'),
+	array('expr' => '&intersect(@a, @d), #b', 'nodes' => 'a, b'),
+	array('expr' => '&intersect(@a, @d), #!b', 'nodes' => 'a, b'),
+	array('expr' => '&intersect(@a, @d), #@d', 'nodes' => 'a, b'),
+	array('expr' => '&intersect(@a, @d), @d', 'nodes' =>
 		'a, b, a, h, 1, b, i, 2, z'),
 
-	array('expr' => 'foo, &intersect(@a, @d)', 'result' => 'foo, a, b'),
-	array('expr' => '!b, &intersect(@a, @d)', 'result' => 'a'),
-	array('expr' => '#b, &intersect(@a, @d)', 'result' => 'a, b'),
-	array('expr' => '#!b, &intersect(@a, @d)', 'result' => 'a, b'),
-	array('expr' => '#@d, &intersect(@a, @d)', 'result' => 'a, b'),
-	array('expr' => '@d, &intersect(@a, @d)', 'result' =>
+	array('expr' => 'foo, &intersect(@a, @d)', 'nodes' => 'foo, a, b'),
+	array('expr' => '!b, &intersect(@a, @d)', 'nodes' => 'a'),
+	array('expr' => '#b, &intersect(@a, @d)', 'nodes' => 'a, b'),
+	array('expr' => '#!b, &intersect(@a, @d)', 'nodes' => 'a, b'),
+	array('expr' => '#@d, &intersect(@a, @d)', 'nodes' => 'a, b'),
+	array('expr' => '@d, &intersect(@a, @d)', 'nodes' =>
 		'a, h, 1, b, i, 2, z, a, b'),
 
-	array('expr' => 'foo, &intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => 'foo, &intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'foo, a, b, a, b, c, d, e, f, g'),
-	array('expr' => '!b, &intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => '!b, &intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'a, a, c, d, e, f, g'),
-	array('expr' => '#b, &intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => '#b, &intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'a, b, a, b, c, d, e, f, g'),
-	array('expr' => '#!b, &intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => '#!b, &intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'a, b, a, b, c, d, e, f, g'),
-	array('expr' => '#@d, &intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => '#@d, &intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'a, b, a, b, c, d, e, f, g'),
-	array('expr' => '@d, &intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => '@d, &intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'a, h, 1, b, i, 2, z, a, b, a, b, c, d, e, f, g'),
 
-	array('expr' => '&intersect(@a, @d), &diff(@a, @b)', 'result' =>
+	array('expr' => '&intersect(@a, @d), &diff(@a, @b)', 'nodes' =>
 		'a, b, a, b, c, d, e, f, g'),
 
-	array('expr' => '&regexp(/^a$/, @b)', 'result' => ''),
-	array('expr' => '&regexp(/^foo$/, foo, bar)', 'result' => 'foo'),
-	array('expr' => '&regexp(/^foo/, foo, bar, foobar)', 'result' =>
+	array('expr' => '&regexp(/^a$/, @b)', 'nodes' => ''),
+	array('expr' => '&regexp(/^foo$/, foo, bar)', 'nodes' => 'foo'),
+	array('expr' => '&regexp(/^foo/, foo, bar, foobar)', 'nodes' =>
 		'foo, foobar'),
 	array('expr' => '&regexp(/^foo1\./, foo, bar, foo1bar, foo1.bar)',
-		'result' => 'foo1.bar'),
-	array('expr' => '&regexp(/^a$/, @a)', 'result' => 'a'),
-	array('expr' => '&regexp(/^a$/i, @a, @b)', 'result' => 'a'),
-	array('expr' => '&regexp(/^A$/i, @a, @b)', 'result' => 'a'),
-	array('expr' => '&regexp(/^A$/, @a, @b)', 'result' => ''),
-	array('expr' => '&regexp(/^a$/, @a, @b)', 'result' => 'a'),
-	array('expr' => '&regex(/^foo/, foo, bar, foobar)', 'result' =>
+		'nodes' => 'foo1.bar'),
+	array('expr' => '&regexp(/^a$/, @a)', 'nodes' => 'a'),
+	array('expr' => '&regexp(/^a$/i, @a, @b)', 'nodes' => 'a'),
+	array('expr' => '&regexp(/^A$/i, @a, @b)', 'nodes' => 'a'),
+	array('expr' => '&regexp(/^A$/, @a, @b)', 'nodes' => ''),
+	array('expr' => '&regexp(/^a$/, @a, @b)', 'nodes' => 'a'),
+	array('expr' => '&regex(/^foo/, foo, bar, foobar)', 'nodes' =>
 		'foo, foobar'),
-	array('expr' => '&regex(/fo(o|p)/, foo, bar, fop)', 'result' =>
+	array('expr' => '&regex(/fo(o|p)/, foo, bar, fop)', 'nodes' =>
 		'foo, fop'),
 );
 ?>

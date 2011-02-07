@@ -23,16 +23,16 @@ $pass = 0;
 foreach($tests as $pos => $test) {
 	$parsed = $ngexpr->parseExpression($test['expr']);
 
-	$result = implode(', ', $parsed['nodes']);
+	$nodes = implode(', ', $parsed['nodes']);
 
-	if($result != $test['result']) {
+	if($nodes != $test['nodes']) {
 		fwrite(STDERR, sprintf("FAIL (%d): ", $pos));
 		fwrite(STDERR, sprintf("%s\n\tgot: %s\n\texpected: %s\n",
-			$test['expr'], $result, $test['result']));
+			$test['expr'], $nodes, $test['nodes']));
 	} else {
 		printf("PASS (%d): ", $pos);
 		printf("%s\n\tgot: %s\n\texpected: %s\n",
-			$test['expr'], $result, $test['result']);
+			$test['expr'], $nodes, $test['nodes']);
 		$pass++;
 	}
 }
