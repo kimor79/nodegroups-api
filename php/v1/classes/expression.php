@@ -35,40 +35,14 @@ class NodegroupsApiExpression {
 	}
 
 	/**
-	 * Parse entity
-	 * @param string $entity
-	 * @param bool $use_cache
-	 * @return array
-	 */
-	protected function parseEntity($entity, $use_cache) {
-		global $driver;
-
-		$first = substr($entity, 0, 1);
-		if($first == '&') {
-			return $this->parseExpression($entity, $use_cache);
-		} elseif($first == '@') {
-			if($use_cache) {
-				return $driver->getNodesFromNodegroup(array(
-					$entity));
-			} else {
-				$details = $driver->getNodegroup($entity);
-				$nodegroup = $this->parseExpression(
-					$details['expression'], $use_cache);
-
-				return $nodegroup['nodes'];
-			}
-		}
-
-		return array($entity);
-	}
-
-	/**
 	 * Parse expression
 	 * @param string $expression
 	 * @param bool $use_cache false to recursively parse
 	 * @return array nodes => array(), children => array()
 	 */
 	public function parseExpression($expr = '', $use_cache = true) {
+		global $driver;
+
 		$entities = array();
 		$entities_exclude = array();
 		$nodegroups = array();
@@ -91,11 +65,32 @@ class NodegroupsApiExpression {
 					break;
 			}
 
-			if(substr($entity, 0, 1) == '@') {
-				$nodegroups[$entity] = substr($entity, 1);
-			}
+			$first = substr($entity, 0, 1);
+			if($first == '&') {
+				$parsed = $this->parseFunction($entity,
+					$use_cache);
 
-			$list = $this->parseEntity($entity, $use_cache);
+				$list = $parsed['nodes'];
+				$nodegroups = array_merge($nodegroups,
+					$parsed['nodegroups']);
+			} elseif($first == '@') {
+				$nodegroups[$entity] = substr($entity, 1);
+
+				if($use_cache) {
+					$list = $driver->getNodesFromNodegroup(
+						array($entity));
+				} else {
+					$details =
+						$driver->getNodegroup($entity);
+					$parsed = $this->parseExpression(
+						$details['expression'],
+						$use_cache);
+
+					$list = $parsed['nodes'];
+				}
+			} else {
+				$list = array($entity);
+			}
 
 			if($negate) {
 				$entities_exclude = array_merge(
@@ -111,6 +106,112 @@ class NodegroupsApiExpression {
 			'nodegroups' => array_values($nodegroups),
 			'nodes' => $nodes,
 		);
+	}
+
+	/**
+	 * Parse a function
+	 * @param string $input
+	 * @param bool $use_cache
+	 * @return array
+	 */
+	protected function parseFunction($input, $use_cache = true) {
+		$call_function = 'array_merge';
+		$exclude = array();
+		$include = array();
+		$is_regex = false;
+		$nodegroups = array();
+		$nodes = array();
+
+		list($function, $expr) = explode('(', $input, 2);
+
+		if(substr($expr, -1, 1) == ')') {
+			$expr = substr($expr, 0, -1);
+		}
+
+		if(substr($function, 0, 6) == '&regex') {
+			$is_regex = true;
+		}
+
+		foreach($this->tokenizeExpression($expr) as $pos => $entity) {
+			if(empty($entity)) {
+				continue;
+			}
+
+			$negate = false;
+
+			switch(substr($entity, 0, 1)) {
+				case '#':
+					continue 2;
+				case '!':
+					$entity = ltrim($entity, '!');
+					$negate = true;
+					break;
+			}
+
+			if($is_regex) {
+				if($pos === 0) {
+				// The first entity of &regexp() is the regex
+				// and does not need to be parsed.
+					$include[$entity] = $entity;
+					continue;
+				}
+			}
+
+			$parsed = $this->parseExpression($entity, $use_cache);
+
+			$nodegroups = array_merge($nodegroups,
+				$parsed['nodegroups']);
+
+			if($negate) {
+				$exclude = array_merge($exclude,
+					$parsed['nodes']);
+			} else {
+				$include[$entity] = $parsed['nodes'];
+			}
+		}
+
+		switch($function) {
+			case '&diff':
+				$call_function = 'array_diff';
+				break;
+			case '&regex':
+			case '&regexp':
+				$call_function = array($this,
+					'parseFunction_regexp');
+				break;
+			case '&intersect':
+				$call_function = 'array_intersect';
+				break;
+			case '&union':
+				$call_function = 'array_merge';
+				break;
+		}
+
+		$nodes = call_user_func_array($call_function,
+			array_values($include));
+
+		$nodes = array_diff($nodes, $exclude);
+
+		return array(
+			'nodegroups' => array_values($nodegroups),
+			'nodes' => $nodes,
+		);
+	}
+
+	/**
+	 * Parse a regex
+	 * @param array $input
+	 * @return array
+	 */
+	protected function parseFunction_regexp() {
+		$array = func_get_args();
+		$regexp = array_shift($array);
+		$array = call_user_func_array('array_merge',
+			array_values($array));
+
+		return array_filter($array, array(new
+			NodegroupsApiExpressionRegexp($regexp),
+			'functionRegexp'));
 	}
 
 	/**
@@ -294,6 +395,18 @@ class NodegroupsApiExpression {
 		}
 
 		return true;
+	}
+}
+
+class NodegroupsApiExpressionRegexp {
+	private $regexp = '';
+
+	public function __construct($regexp) {
+		$this->regexp = $regexp;
+	}
+
+	public function functionRegexp($node = false) {
+		return preg_match($this->regexp, $node);
 	}
 }
 
