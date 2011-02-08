@@ -21,6 +21,7 @@ foreach($nodegroups as $nodegroup => $data) {
 $pass = 0;
 
 foreach($tests as $pos => $test) {
+	printf("NOW ON %d: %s\n", $pos, $test['expr']);
 	$results = array(
 		'nodegroups' => array('expected' => array(), 'got' => array()),
 		'nodes' => array('expected' => array(), 'got' => array()),
