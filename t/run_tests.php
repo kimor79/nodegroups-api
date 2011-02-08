@@ -81,22 +81,18 @@ foreach($tests as $pos => $test) {
 
 	fwrite(STDERR, sprintf("FAIL (%d): %s\n", $pos, $test['expr']));
 
-	fwrite(STDERR, sprintf("\tng got: %d\n", $count['nodegroups']['got']));
-	fwrite(STDERR, sprintf("\tng expected: %d\n",
-		$count['nodegroups']['expected']));
-
-	fwrite(STDERR, sprintf("\tgot: %d\n", $count['nodes']['got']));
-	fwrite(STDERR, sprintf("\texpected: %d\n",
-		$count['nodes']['expected']));
-
-	fwrite(STDERR, sprintf("\tng missing from got: %s\n",
+	fwrite(STDERR, sprintf("  ng got\t(%d): %s\n",
+		$count['nodegroups']['got'],
 		implode(', ', $parsed['nodegroups'])));
-	fwrite(STDERR, sprintf("\tng missing from expected: %s\n",
+	fwrite(STDERR, sprintf("  ng expected\t(%d): %s\n",
+		$count['nodegroups']['expected'],
 		implode(', ', $test['nodegroups'])));
 
-	fwrite(STDERR, sprintf("\tmissing from got: %s\n",
+	fwrite(STDERR, sprintf("  got\t\t(%d): %s\n",
+		$count['nodes']['got'],
 		implode(', ', $parsed['nodes'])));
-	fwrite(STDERR, sprintf("\tmissing from expected: %s\n",
+	fwrite(STDERR, sprintf("  expected\t(%d): %s\n",
+		$count['nodes']['expected'],
 		implode(', ', $test['nodes'])));
 }
 
