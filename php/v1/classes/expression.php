@@ -102,6 +102,11 @@ class NodegroupsApiExpression {
 
 		$nodes = array_diff($entities, $entities_exclude);
 
+		// See the comments at
+		// http://php.net/manual/en/function.array-unique.php
+		// as to why this is faster than array_unique()
+		$nodes = array_merge(array_flip(array_flip($nodes)));
+
 		return array(
 			'nodegroups' => array_values($nodegroups),
 			'nodes' => $nodes,
