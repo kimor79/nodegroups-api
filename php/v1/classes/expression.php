@@ -105,10 +105,11 @@ class NodegroupsApiExpression {
 		// See the comments at
 		// http://php.net/manual/en/function.array-unique.php
 		// as to why this is faster than array_unique()
+		$nodegroups = array_merge(array_flip(array_flip($nodegroups)));
 		$nodes = array_merge(array_flip(array_flip($nodes)));
 
 		return array(
-			'nodegroups' => array_values($nodegroups),
+			'nodegroups' => $nodegroups,
 			'nodes' => $nodes,
 		);
 	}
