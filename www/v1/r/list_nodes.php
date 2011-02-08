@@ -33,6 +33,7 @@ $slave_okay = true;
 
 require_once('nodegroups_api/v1/includes/init_records.php');
 
+$api->setConfig('list_key', 'node');
 $api->setParameters();
 $get = $api->setInput($_GET);
 $input = array_merge($get, $_POST);
