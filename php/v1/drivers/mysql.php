@@ -141,9 +141,9 @@ class NodegroupsApiDriverMySQL {
 			return $default;
 		}
 
-		$type = 'rw' . $key;
+		$type = 'rw_' . $key;
 		if($this->slave_okay) {
-			$type = 'ro' . $key;
+			$type = 'ro_' . $key;
 		}
 
 		if(array_key_exists($type, $config['mysql'])) {
