@@ -394,6 +394,48 @@ class NodegroupsApiDriverMySQL {
 	}
 
 	/**
+	 * Modify a nodegroup
+	 * @param string $nodegroup
+	 * @param array $details
+	 * @return bool
+	 */
+	public function modifyNodegroup($nodegroup = '', $details = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$binds = 's';
+		$refs = array();
+		$query_set = array();
+
+		foreach($details as $key => $value) {
+			$query_set[] = sprintf("`%s` = ?", $key);
+			$refs[$key] = &$details[$key];
+			$binds .= 's';
+		}
+
+		$query = 'UPDATE `' . $this->prefix . 'nodegroups` SET ';
+		$query .= implode(', ', $query_set);
+		$query .= ' WHERE `nodegroup` = ?';
+
+		$refs[] = &$nodegroup;
+		array_unshift($refs, $binds);
+
+		$status = $this->queryWrite($query, $refs);
+		if($status == 1) {
+			return true;
+		}
+
+		if($status === 0) {
+			$this->error = 'No rows updated';
+		}
+
+		if($status > 1) {
+			$this->error = 'More than one row modified';
+		}
+
+		return false;
+	}
+
+	/**
 	 * Perform a read-only query
 	 * @param string $query
 	 * @param array $binds
