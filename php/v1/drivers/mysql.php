@@ -86,7 +86,7 @@ class NodegroupsApiDriverMySQL {
 
 		array_unshift($refs, $binds);
 
-		$status = $this->queryWrite($query, $binds);
+		$status = $this->queryWrite($query, $refs);
 		if($status == 1) {
 			return true;
 		}
@@ -505,7 +505,7 @@ class NodegroupsApiDriverMySQL {
 			return false;
 		}
 
-		if(!call_user_func_array(array($st, 'bind_param'), $binds)) {
+		if(call_user_func_array(array($st, 'bind_param'), $binds)) {
 			if($st->execute()) {
 				if(is_numeric($st->affected_rows)) {
 					$rows = $st->affected_rows;
