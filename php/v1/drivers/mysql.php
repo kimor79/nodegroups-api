@@ -110,14 +110,18 @@ class NodegroupsApiDriverMySQL {
 		$query .= '`nodegroup` = ?';
 
 		$status = $this->queryWrite($query, array('s', &$nodegroup));
-		if($status !== false) {
+		if($status == 1) {
 			return true;
 		}
-				
-		if($st->errno) {
-			$this->error = $st->error;
+
+		if($status === 0) {
+			$this->error = 'No rows deleted';
 		}
 
+		if($status > 1) {
+			$this->error = 'More than one row deleted';
+		}
+				
 		return false;
 	}
 
