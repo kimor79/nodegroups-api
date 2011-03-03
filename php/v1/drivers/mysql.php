@@ -516,11 +516,13 @@ class NodegroupsApiDriverMySQL {
 			}
 		}
 
+		$this->error = '';
 		if($st->errno) {
 			$this->error = $st->error;
-			if($this->query_on_error) {
-				$this->error .= ': ' . $query;
-			}
+		}
+
+		if($this->query_on_error) {
+			$this->error .= ': ' . $query;
 		}
 
 		$st->close();
@@ -571,15 +573,18 @@ class NodegroupsApiDriverMySQL {
 			$this->prefix);
 		$query_delete .= '`parent` = ?';
 
-		if(!empty($save)) {
+		if(empty($save)) {
+			$save[] = 's';
+			$save[] = &$nodegroup;
+		} else {
 			$query_delete .= sprintf(" AND `child` NOT IN (%s)",
 				implode(',', $save_questions));
+
+			array_unshift($save, $binds . 's', &$nodegroup);
 		}
 
-		array_unshift($save, $binds . 's', &$nodegroup);
-
 		$status = $this->queryWrite($query_delete, $save);
-		if($status != false) {
+		if($status !== false) {
 			return true;
 		}
 
@@ -629,15 +634,18 @@ class NodegroupsApiDriverMySQL {
 			$this->prefix);
 		$query_delete .= '`nodegroup` = ?';
 
-		if(!empty($save)) {
+		if(empty($save)) {
+			$save[] = 's';
+			$save[] = &$nodegroup;
+		} else {
 			$query_delete .= sprintf(" AND `node` NOT IN (%s)",
 				implode(',', $save_questions));
+
+			array_unshift($save, $binds . 's', &$nodegroup);
 		}
 
-		array_unshift($save, $binds . 's', &$nodegroup);
-
 		$status = $this->queryWrite($query_delete, $save);
-		if($status != false) {
+		if($status !== false) {
 			return true;
 		}
 
