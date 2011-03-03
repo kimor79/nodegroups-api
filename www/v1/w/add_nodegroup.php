@@ -50,20 +50,25 @@ if(!empty($errors)) {
 	exit(0);
 }
 
-$nodegroup = $input['nodegroup'];
-$details = array(
-	'description' => $api->gpcSlash($input['description']),
-	'expression' => $api->gpcSlash($input['expression']),
+$sanitize = array(
+	'description' => 'gpcSlash',
+	'expression' => 'gpcSlash',
+	'nodegroup' => 'gpcSlash',
 );
 
-$parsed = $ngexpr->parseExpression($details['expression']);
+$input = $api->sanitizeInput($input, $sanitize);
+
+$nodegroup = $input['nodegroup'];
+unset($input['nodegroup']);
+
+$parsed = $ngexpr->parseExpression($input['expression']);
 if(empty($parsed)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Unable to parse expression');
 	exit(0);
 }
 
-if(!$driver->addNodegroup($nodegroup, $details)) {
+if(!$driver->addNodegroup($nodegroup, $input)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Adding nodegroup: ' . $driver->error());
 	exit(0);
