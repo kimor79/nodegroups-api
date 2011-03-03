@@ -324,6 +324,11 @@ class NodegroupsApiExpression {
 	 * @param array list of errors (if any)
 	 */
 	public function validateExpression($input) {
+		if($input === '') {
+		// Blank expressions are valid
+			return true;
+		}
+
 		if(strpos($input, '&regex') !== false) {
 		// TODO: figure out how to still validate
 		// the rest of the expression
