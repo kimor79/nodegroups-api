@@ -494,6 +494,7 @@ class NodegroupsApiDriverMySQL {
 	 * @param string $query
 	 * @param array $binds
 	 * @return mixed affected rows or false
+	 */
 	protected function queryWrite($query, $binds) {
 		$st = $this->mysql->prepare($query);
 		if(!$st) {
