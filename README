@@ -12,7 +12,7 @@ http://en.wikipedia.org/wiki/Venn_diagram
 Definitions:
 
     * Node - A singular abstract basic unit, most often a hostname or an IP address.
-          o A node may only be a valid IP address (v4 or v6) or contain alphanumeric characters, dots, dashes or underscores.
+          o A node may only contain alphanumeric characters, colons, dots, dashes or underscores.
     * Nodegroup - A collection of entities (nodes, nodegroups, functions).
           o A nodegroup name may only contain alphanumeric characters, dots, dashes or underscores.
           o To reference a nodegroup in an expression or function, prefix the name with an '@': @foo.

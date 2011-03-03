@@ -338,7 +338,7 @@ class NodegroupsApiExpression {
 		$input = $this->sanitizeExpression($input);
 
 		// Test for only valid characters
-		if(!preg_match('/^[-\w\.\(\)\&\@\,\!\#]+$/i', $input)) {
+		if(!preg_match('/^[-\w\.\:\(\)\&\@\,\!\#]+$/i', $input)) {
 			return false;
 		}
 
