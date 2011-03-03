@@ -68,6 +68,13 @@ if(empty($parsed)) {
 	exit(0);
 }
 
+$existing = $driver->getNodegroup($nodegroup);
+if(!empty($existing)) {
+	$api->sendHeaders();
+	$api->showOutput(400, 'Nodegroup already exists');
+	exit(0);
+}
+
 if(!$driver->addNodegroup($nodegroup, $input)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Adding nodegroup: ' . $driver->error());
