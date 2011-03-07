@@ -29,38 +29,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 **/
 
-class NodegroupsApiDriverMySQL {
+class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 	protected $count = 0;
-	protected $error = '';
-	private $mysql;
-	private $prefix = '';
-	protected $query_on_error = false;
-	protected $slave_okay = false;
 
 	public function __construct($slave_okay = false) {
 		global $config;
 
-		$this->slave_okay = $slave_okay;
+		$mconfig = array();
 
-		$database = $this->getConfig('database', 'nodegroups');
-		$host = $this->getConfig('host', 'localhost');
-		$password = $this->getConfig('password', '');
-		$user = $this->getConfig('user', '');
-
-		$this->prefix = $this->getConfig('prefix', '');
-		$this->query_on_error = $this->getConfig('query_on_error',
-			false);
-
-		$this->mysql = new mysqli($host, $user, $password, $database);
-
-		if(mysqli_connect_errno()) {
-			throw new Exception(mysqli_connect_error());
+		if(array_key_exists('mysql', $config)) {
+			$mconfig = $config['mysql'];
 		}
+
+		if(!array_key_exists('database', $mconfig)) {
+			$mconfig['database'] = 'nodegroups';
+		}
+
+		parent::__construct($slave_okay, $mconfig);
 	}
 
 	public function __deconstruct() {
-		$this->mysql->close();
+		parent::__deconstruct();
 	}
 
 	/**
@@ -131,34 +121,6 @@ class NodegroupsApiDriverMySQL {
 	 */
 	public function error() {
 		return $this->error;
-	}
-
-	/** Get a config value
-	 * @param string $key
-	 * @param string $default
-	 * @return string
-	 */
-	protected function getConfig($key = '', $default = '') {
-		global $config;
-
-		if(!array_key_exists('mysql', $config)) {
-			return $default;
-		}
-
-		$type = 'rw_' . $key;
-		if($this->slave_okay) {
-			$type = 'ro_' . $key;
-		}
-
-		if(array_key_exists($type, $config['mysql'])) {
-			return $config['mysql'][$type];
-		}
-
-		if(array_key_exists($key, $config['mysql'])) {
-			return $config['mysql'][$key];
-		}
-
-		return $default;
 	}
 
 	/**
@@ -436,142 +398,6 @@ class NodegroupsApiDriverMySQL {
 			$this->error = 'More than one row modified';
 		}
 
-		return false;
-	}
-
-	/**
-	 * Perform a read-only query
-	 * @param string $query
-	 * @param array $binds
-	 * @return mixed records or false
-	 */
-	protected function queryRead($query, $binds) {
-		$st = $this->mysql->prepare($query);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			if($this->query_on_error) {
-				$this->error .= ': ' . $query;
-			}
-			return false;
-		}
-
-		if(!call_user_func_array(array($st, 'bind_param'), $binds)) {
-			if($st->errno) {
-				$this->error = $st->error;
-				if($this->query_on_error) {
-					$this->error .= ': ' . $query;
-				}
-			}
-
-			$st->close();
-			return false;
-		}
-
-		if(!$st->execute()) {
-			if($st->errno) {
-				$this->error = $st->error;
-				if($this->query_on_error) {
-					$this->error .= ': ' . $query;
-				}
-			}
-
-			$st->close();
-			return false;
-		}
-
-		if(!$st->store_result()) {
-			if($st->errno) {
-				$this->error = $st->error;
-				if($this->query_on_error) {
-					$this->error .= ': ' . $query;
-				}
-			}
-
-			$st->close();
-			return false;
-		}
-
-		$result = $st->result_metadata();
-		if(!$result) {
-			if($st->errno) {
-				$this->error = $st->error;
-				if($this->query_on_error) {
-					$this->error .= ': ' . $query;
-				}
-			}
-
-			$st->close();
-			return false;
-		}
-
-		$columns = array();
-		foreach($result->fetch_fields() as $field) {
-			$columns[] = &$fields[$field->name];
-		}
-
-		if(call_user_func_array(array($st, 'bind_result'), $columns)) {
-			$records = array();
-			while($st->fetch()) {
-				$details = array();
-				foreach($fields as $field => $value) {
-					$details[$field] = $value;
-				}
-
-				$records[] = $details;
-			}
-
-			$st->close();
-			return $records;
-		}
-
-		if($st->errno) {
-			$this->error = $st->error;
-			if($this->query_on_error) {
-				$this->error .= ': ' . $query;
-			}
-		}
-
-		$st->close();
-		return false;
-	}
-
-	/**
-	 * Perform a write query
-	 * @param string $query
-	 * @param array $binds
-	 * @return mixed affected rows or false
-	 */
-	protected function queryWrite($query, $binds) {
-		$st = $this->mysql->prepare($query);
-		if(!$st) {
-			$this->error = $this->mysql->error;
-			if($this->query_on_error) {
-				$this->error .= ': ' . $query;
-			}
-			return false;
-		}
-
-		if(call_user_func_array(array($st, 'bind_param'), $binds)) {
-			if($st->execute()) {
-				if(is_numeric($st->affected_rows)) {
-					$rows = $st->affected_rows;
-
-					$st->close();
-					return $rows;
-				}
-			}
-		}
-
-		$this->error = '';
-		if($st->errno) {
-			$this->error = $st->error;
-		}
-
-		if($this->query_on_error) {
-			$this->error .= ': ' . $query;
-		}
-
-		$st->close();
 		return false;
 	}
 
