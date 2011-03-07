@@ -116,14 +116,6 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * Return last error
-	 * @return string
-	 */
-	public function error() {
-		return $this->error;
-	}
-
-	/**
 	 * Get the total from the last query
 	 * @return int
 	 */
