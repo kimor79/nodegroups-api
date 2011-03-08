@@ -430,12 +430,8 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		array_unshift($refs, $binds);
 
 		$status = $this->queryWrite($query, $refs);
-		if($status == 1) {
+		if($status == 1 || $status === 0) {
 			return true;
-		}
-
-		if($status === 0) {
-			$this->error = 'No rows updated';
 		}
 
 		if($status > 1) {
