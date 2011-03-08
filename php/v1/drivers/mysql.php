@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 **/
 
+require_once('api_producer/v1/drivers/mysql.php');
+
 class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 	protected $count = 0;
@@ -112,6 +114,31 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			$this->error = 'More than one row deleted';
 		}
 				
+		return false;
+	}
+
+	/**
+	 * Get children for given nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array with details (which may be empty) or false
+	 */
+	public function getChildren($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = sprintf("SELECT `child` FROM `%sparent_child`",
+			$this->prefix);
+		$query .= ' WHERE `parent` = ?';
+
+		$data = $this->queryRead($query, array('s', &$nodegroup));
+		if(is_array($data)) {
+			$details = array();
+			while(list($junk, $record) = each($data)) {
+				$details[] = $record['child'];
+			}
+
+			return $details;
+		}
+
 		return false;
 	}
 
@@ -352,6 +379,31 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Get parents for given nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array with details (which may be empty) or false
+	 */
+	public function getParents($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = sprintf("SELECT `parent` FROM `%sparent_child`",
+			$this->prefix);
+		$query .= ' WHERE `child` = ?';
+
+		$data = $this->queryRead($query, array('s', &$nodegroup));
+		if(is_array($data)) {
+			$details = array();
+			while(list($junk, $record) = each($data)) {
+				$details[] = $record['parent'];
+			}
+
+			return $details;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Modify a nodegroup
 	 * @param string $nodegroup
 	 * @param array $details
@@ -428,7 +480,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			array_unshift($add, $binds . $binds);
 
 			$status = $this->queryWrite($query_add, $add);
-			if($status == false) {
+			if($status === false) {
 				return false;
 			}
 		}
@@ -489,7 +541,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			array_unshift($add, $binds . $binds);
 
 			$status = $this->queryWrite($query_add, $add);
-			if($status == false) {
+			if($status === false) {
 				return false;
 			}
 		}

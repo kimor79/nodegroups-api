@@ -102,9 +102,52 @@ if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
 	exit(0);
 }
 
+$parent_error = doParent($nodegroup);
+if($parent_error !== true) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Updating Parents: ' . $parent_error);
+	exit(0);
+}
+
 $data = $driver->getNodegroup($nodegroup);
 
 $api->sendHeaders();
 $api->showOutput(200, 'Modified', $data);
+
+function doParent($group) {
+	global $driver, $ngexpr;
+
+	$parents = $driver->getParents($group);
+	if(!is_array($parents)) {
+		return $driver->error();
+	}
+
+	if(empty($parents)) {
+		return true;
+	}
+
+	foreach($parents as $parent) {
+		$details = $driver->getNodegroup($parent);
+		if(!is_array($details)) {
+			return $driver->error();
+		}
+
+		$p_parsed = $ngexpr->parseExpression($details['expression']);
+		if(empty($p_parsed)) {
+			return 'Unable to parse expression';
+		}
+
+		if(!$driver->setNodes($parent, $p_parsed['nodes'])) {
+			return $driver->error();
+		}
+
+		$return = doParent($parent);
+		if($return !== true) {
+			return $return;
+		}
+	}
+
+	return true;
+}
 
 ?>
