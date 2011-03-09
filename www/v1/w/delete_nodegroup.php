@@ -56,6 +56,12 @@ $input = $api->sanitizeInput($input, $sanitize);
 $nodegroup = $input['nodegroup'];
 
 $existing = $driver->getNodegroup($nodegroup);
+if(!is_array($existing)) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Checking for existence: ' . $driver->error());
+	exit(0);
+}
+
 if(empty($existing)) {
 	$api->sendHeaders();
 	$api->showOutput(400, 'No such nodegroup');
