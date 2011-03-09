@@ -62,6 +62,20 @@ if(empty($existing)) {
 	exit(0);
 }
 
+$has_parents = $driver->getParents($nodegroup);
+if(!is_array($has_parents)) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Checking for parents: ' . $driver->error());
+	exit(0);
+}
+
+if(!empty($has_parents)) {
+	$api->sendHeaders();
+	$api->showOutput(400, 'Nodegroup is in use by other nodegroups',
+		$has_parents);
+	exit(0);
+}
+
 if(!$driver->deleteNodegroup($nodegroup)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Deleting nodegroup: ' . $driver->error());
