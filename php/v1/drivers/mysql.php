@@ -125,21 +125,13 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	public function getChildren($nodegroup) {
 		$nodegroup = $this->stripAt($nodegroup);
 
-		$query = sprintf("SELECT `child` FROM `%sparent_child`",
-			$this->prefix);
-		$query .= ' WHERE `parent` = ?';
-
-		$data = $this->queryRead($query, array('s', &$nodegroup));
-		if(is_array($data)) {
-			$details = array();
-			while(list($junk, $record) = each($data)) {
-				$details[] = $record['child'];
-			}
-
-			return $details;
-		}
-
-		return false;
+		return $this->select(array(
+			'_binds' => 's',
+			'_refs' => &$nodegroup,
+			'from' => sprintf("`%sparent_child`", $this->prefix),
+			'select' => '`child`',
+			'where' => '`parent` = ?',
+		));
 	}
 
 	/**
@@ -158,20 +150,12 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	public function getNodegroup($nodegroup) {
 		$nodegroup = $this->stripAt($nodegroup);
 
-		$query = 'SELECT * FROM `' . $this->prefix . 'nodegroups`';
-		$query .= ' WHERE `nodegroup` = ?';
-
-		$data = $this->queryRead($query, array('s', &$nodegroup));
-		if(is_array($data)) {
-			$details = array();
-			while(list($junk, $record) = each($data)) {
-				$details = $record;
-			}
-
-			return $details;
-		}
-
-		return false;
+		return $this->select(array(
+			'_binds' => 's',
+			'_refs' => &$nodegroup,
+			'from' => sprintf("`%snodegroups`", $this->prefix),
+			'where' => '`nodegroup` = ?',
+		));
 	}
 
 	/**
@@ -183,130 +167,131 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	 */
 	public function getNodegroupsFromNode($input,
 			$app = '', $options = array()) {
-		$app_join = '';
-		$app_order = '';
-		$app_where = '';
 		$binds = '';
-		$fields_join = '';
-		$limit = false;
-		$refs = array();
-		$query_fields = array();
-		$query_nodegroups = array();
-		$query_nodes = array();
-		$questions_eq = array();
-
 		$fields = array(
 			'description' => '`description`',
 			'expression' => '`expression`',
 		);
+		$nodegroups = array();
+		$nodes = array();
+		$query = array(
+			'from' => sprintf("`%snodes`", $this->prefix),
+			'order' => '`nodegroup`',
+		);
+		$questions = array();
+		$refs = array();
+		$select = array();
+		$select_count = '';
+		$where = array();
+
+		$this->count = 0;
+
+		$select['nodegroup'] = 'DISTINCT(';
+		$select['nodegroup'] .= sprintf("`%snodes`.`nodegroup`",
+			$this->prefix);
+		$select['nodegroup'] .= ') AS `nodegroup`';
 
 		while(list($node, $junk) = each($input['eq'])) {
 			$binds .= 's';
-			$refs[] = &$input['eq'][$node];
-			$questions_eq[] = '?';
+			$refs['eq' . $node] = &$input['eq'][$node];
+			$questions[] = '?';
 		}
 
-		if(!empty($questions_eq)) {
-			$query_nodes[] = sprintf("`node` IN (%s)",
-				implode(',', $questions_eq));
+		if(!empty($questions)) {
+			$nodes[] = sprintf("`node` IN (%s)",
+				implode(', ', $questions));
 		}
 
 		while(list($node, $junk) = each($input['re'])) {
 			$binds .= 's';
-			$refs[] = &$input['re'][$node];
-			$query_nodes[] = '`node` REGEXP ?';
+			$refs['re' . $node] = &$input['re'][$node];
+			$nodes[] = '`node` REGEXP ?';
 		}
+
+		$where['nodes'] = sprintf("(%s)", implode(' OR ', $nodes));
 
 		if($app) {
-			$fields['order'] = 'IFNULL(`order`, 50) AS `order`';
+			$query['order'] = 'IFNULL(`order`, 50), ' .
+				$query['order'];
+			$fields['order'] .= 'IFNULL(`order`, 50) AS `order`';
+
+			$query['from'] .= sprintf(" LEFT JOIN `%sorder`",
+				$this->prefix);
+			$query['from'] .= ' USING (`nodegroup`)';
 
 			$binds .= 's';
-			array_unshift($refs, &$app);
-			$app_join = ' LEFT JOIN `order` USING (`nodegroup`)';
-			$app_order = 'IFNULL(`order`, 50), ';
-			$app_where = '(`app` IS NULL OR `app` = ?) AND ';
+			$refs['app'] = &$app;
+			$where['app'] = '(`app` IS NULL OR `app` = ?)';
 		}
-
-		$query_count = 'SELECT COUNT(DISTINCT(`nodes`.`nodegroup`))';
-		$query_count .= ' AS `count`';
-
-		$query_main = 'SELECT DISTINCT(`nodes`.`nodegroup`)';
-		$query_main .= ' AS `nodegroup`';
-
-		if(array_key_exists('outputFields', $options)) {
-			foreach($fields as $key => $field) {
-				if($options['outputFields'][$key]) {
-					$query_fields[] = $field;
-				}
-			}
-
-			if(!empty($query_fields)) {
-				$fields_join = ' LEFT JOIN `nodegroups`';
-				$fields_join .= ' USING (`nodegroup`)';
-
-				$query_main .= sprintf(", %s",
-					implode(', ', $query_fields));
-			}
-		}
-
-		$query = sprintf(" FROM `%snodes`", $this->prefix);
-		$query .= $app_join . $fields_join;
-		$query .= sprintf(" WHERE %s(%s)", $app_where,
-			implode(' OR ', $query_nodes));
 
 		if(array_key_exists('nodegroup_re', $options)) {
 			while(list($group, $junk) =
 					each($options['nodegroup_re'])) {
 				$binds .= 's';
-				$refs[] = &$options['nodegroup_re'][$group];
-				$query_nodegroups[] = '`nodegroup` REGEXP ?';
+				$refs[$group] =
+					&$options['nodegroup_re'][$group];
+
+				$nodegroups[] = '`nodegroup` REGEXP ?';
 			}
 
-			$query .= sprintf(" AND (%s)",
-				implode(' OR ', $query_nodegroups));
+			if(!empty($nodegroups)) {
+				$where['nodegroup'] = sprintf("(%s)",
+					implode(', ', $nodegroups));
+			}
 		}
 
-		$query_count .= $query;
-		$query_main .= $query;
+		if(array_key_exists('outputFields', $options)) {
+			foreach($fields as $key => $field) {
+				if($options['outputFields'][$key]) {
+					$select[$key] = $field;
+				}
+			}
+
+			$query['from'] .= sprintf(" LEFT JOIN `%snodegroups`",
+				$this->prefix);
+			$query['from'] .= ' USING (`nodegroup`)';
+		}
 
 		if(array_key_exists('sortDir', $options)) {
-			$query_main .= sprintf(" ORDER BY %s`nodegroup` %s",
-				$app_order, $options['sortDir']);
+			$query['order'] .= ' ' . $options['sortDir'];
 		}
 
-		if(array_key_exists('startIndex', $options)) {
-			$limit = true;
-			$query_main .= sprintf(" LIMIT %d, %d",
-				$options['startIndex'],
-				($options['numResults']) ?
-					$options['numResults'] :
-					'18446744073709551615');
+		$query['_binds'] = $binds;
+		$query['_refs'] = $refs;
+		$query['select'] = implode(', ', $select);
+		$query['where'] = implode(' AND ', $where);
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
 		}
 
-		array_unshift($refs, $binds);
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
 
-		$data = $this->queryRead($query_main, $refs);
-		if(is_array($data)) {
-			$nodegroups = array();
-			while(list($junk, $record) = each($data)) {
-				$nodegroups[] = $record;
-			}
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(DISTINCT(';
+				$query['select'] .= sprintf("`%snodes`",
+					$this->prefix);
+				$query['select'] .= '.`nodegroup`)) AS `count`';
 
-			if($limit) {
-				$count = $this->queryRead($query_count, $refs);
-				if(is_array($count)) {
-					foreach($count as $record) {
-						$this->count = $record['count'];
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
 					}
 				}
 			} else {
-				$this->count = count($nodegroups);
+				$this->count = count($records);
 			}
-
-			return $nodegroups;
 		}
 
-		return false;
+		return $records;
 	}
 
 	/**
@@ -317,65 +302,108 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	 */
 	public function getNodesFromNodegroup($input, $options = array()) {
 		$binds = '';
-		$limit = false;
-		$refs = array();
+		$fields = array(
+			'node' => '`node`',
+		);
+		$nodegroups = array();
+		$nodes = array();
+		$query = array(
+			'from' => sprintf("`%snodes`", $this->prefix),
+			'order' => '`node`',
+		);
 		$questions = array();
+		$refs = array();
+		$select = array();
+		$select_count = '';
+		$where = array();
 
-		while(list($key, $group) = each($input)) {
-			$input[$key] = $this->stripAt($group);
+		$this->count = 0;
+
+		$select['nodegroup'] = 'DISTINCT(`node`) AS `node`';
+
+		while(list($key, $group) = each($input['eq'])) {
+			$input['eq'][$key] = $this->stripAt($group);
 			$binds .= 's';
-			$refs[] = &$input[$key];
+			$refs['eq' . $key] = &$input['eq'][$key];
 			$questions[] = '?';
 		}
 
-		$query_count = 'SELECT COUNT(DISTINCT(`node`)) AS `count`';
-		$query_main = 'SELECT DISTINCT(`node`) AS `node`';
-
-		$query = sprintf(" FROM `%snodes`", $this->prefix);
-		$query .= sprintf(" WHERE `nodegroup` IN (%s)",
-			implode(',', $questions));
-
-		$query_count .= $query;
-		$query_main .= $query;
-
-		if(array_key_exists('sortDir', $options)) {
-			$query_main .= sprintf(" ORDER BY `node` %s",
-				$options['sortDir']);
+		if(!empty($questions)) {
+			$nodegroups[] = sprintf("`nodegroup` IN (%s)",
+				implode(', ', $questions));
 		}
 
-		if(array_key_exists('startIndex', $options)) {
-			$limit = true;
-			$query_main .= sprintf(" LIMIT %d, %d",
-				$options['startIndex'],
-				($options['numResults']) ?
-					$options['numResults'] :
-					'18446744073709551615');
+		while(list($key, $group) = each($input['re'])) {
+			$input['re'][$key] = $this->stripAt($group);
+			$binds .= 's';
+			$refs['re' . $key] = &$input['re'][$key];
+			$nodegroups[] = '`nodegroup` REGEXP ?';
 		}
 
-		array_unshift($refs, $binds);
+		$where['nodegroups'] = sprintf("(%s)",
+			implode(' OR ', $nodegroups));
 
-		$data = $this->queryRead($query_main, $refs);
-		if(is_array($data)) {
-			$nodes = array();
-			while(list($junk, $record) = each($data)) {
-				$nodes[] = $record['node'];
+		if(array_key_exists('node_re', $options)) {
+			while(list($node, $junk) = each($options['node_re'])) {
+				$binds .= 's';
+				$refs[$node] =
+					&$options['node_re'][$node];
+
+				$nodes[] = '`node` REGEXP ?';
 			}
 
-			if($limit) {
-				$count = $this->queryRead($query_count, $refs);
-				if(is_array($count)) {
-					foreach($count as $record) {
-						$this->count = $record['count'];
+			if(!empty($nodes)) {
+				$where['nodes'] = sprintf("(%s)",
+					implode(', ', $nodes));
+			}
+		}
+
+		if(array_key_exists('outputFields', $options)) {
+			foreach($fields as $key => $field) {
+				if($options['outputFields'][$key]) {
+					$select[$key] = $field;
+				}
+			}
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		$query['_binds'] = $binds;
+		$query['_refs'] = $refs;
+		$query['select'] = implode(', ', $select);
+		$query['where'] = implode(' AND ', $where);
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(DISTINCT(`node`))';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
 					}
 				}
 			} else {
-				$this->count = count($nodegroups);
+				$this->count = count($records);
 			}
-
-			return $nodes;
 		}
 
-		return false;
+		return $records;
 	}
 
 	/**
@@ -386,21 +414,13 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	public function getParents($nodegroup) {
 		$nodegroup = $this->stripAt($nodegroup);
 
-		$query = sprintf("SELECT `parent` FROM `%sparent_child`",
-			$this->prefix);
-		$query .= ' WHERE `child` = ?';
-
-		$data = $this->queryRead($query, array('s', &$nodegroup));
-		if(is_array($data)) {
-			$details = array();
-			while(list($junk, $record) = each($data)) {
-				$details[] = $record['parent'];
-			}
-
-			return $details;
-		}
-
-		return false;
+		return $this->select(array(
+			'_binds' => 's',
+			'_refs' => &$nodegroup,
+			'from' => sprintf("`%sparent_child`", $this->prefix),
+			'select' => '`parent`',
+			'where' => '`child` = ?',
+		));
 	}
 
 	/**
