@@ -104,12 +104,12 @@ class NodegroupsApiDriverTestInMemory {
 
 	/**
 	 * List nodegroups for a node
-	 * @param array $nodes array('re' => array(), 'eq' => array())
+	 * @param array $input array('re' => array(), 'eq' => array())
 	 * @param string $app
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function listNodegroupsFromNode($input,
+	public function listNodegroupsFromNodes($input,
 			$app = '', $options = array()) {
 
 		$this->error = 'Not Implemented';
@@ -117,15 +117,15 @@ class NodegroupsApiDriverTestInMemory {
 	}
 
 	/**
-	 * Listnodes from a nodegroup
-	 * @param array $nodegroups
+	 * List nodes from a nodegroup
+	 * @param array $input
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function listNodesFromNodegroup($input, $options = array()) {
+	public function listNodesFromNodegroups($input, $options = array()) {
 		$nodes = array();
 
-		while(list($key, $group) = each($input)) {
+		while(list($key, $group) = each($input['eq'])) {
 			$t_group = $this->stripAt($group);
 
 			if(array_key_exists($t_group, $this->nodes)) {

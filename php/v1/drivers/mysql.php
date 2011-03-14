@@ -165,7 +165,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function listNodegroupsFromNode($input,
+	public function listNodegroupsFromNodes($input,
 			$app = '', $options = array()) {
 		$binds = '';
 		$fields = array(
@@ -191,6 +191,10 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			$this->prefix);
 		$select['nodegroup'] .= ') AS `nodegroup`';
 
+		if(!array_key_exists('eq', $input)) {
+			$input['eq'] = array();
+		}
+
 		while(list($node, $junk) = each($input['eq'])) {
 			$binds .= 's';
 			$refs['eq' . $node] = &$input['eq'][$node];
@@ -200,6 +204,10 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		if(!empty($questions)) {
 			$nodes[] = sprintf("`node` IN (%s)",
 				implode(', ', $questions));
+		}
+
+		if(!array_key_exists('re', $input)) {
+			$input['re'] = array();
 		}
 
 		while(list($node, $junk) = each($input['re'])) {
@@ -300,7 +308,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function listNodesFromNodegroup($input, $options = array()) {
+	public function listNodesFromNodegroups($input, $options = array()) {
 		$binds = '';
 		$fields = array(
 			'node' => '`node`',
@@ -321,6 +329,10 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 		$select['nodegroup'] = 'DISTINCT(`node`) AS `node`';
 
+		if(!array_key_exists('eq', $input)) {
+			$input['eq'] = array();
+		}
+
 		while(list($key, $group) = each($input['eq'])) {
 			$input['eq'][$key] = $this->stripAt($group);
 			$binds .= 's';
@@ -331,6 +343,10 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		if(!empty($questions)) {
 			$nodegroups[] = sprintf("`nodegroup` IN (%s)",
 				implode(', ', $questions));
+		}
+
+		if(!array_key_exists('re', $input)) {
+			$input['re'] = array();
 		}
 
 		while(list($key, $group) = each($input['re'])) {

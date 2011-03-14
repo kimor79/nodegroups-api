@@ -77,8 +77,8 @@ class NodegroupsApiExpression {
 				$nodegroups[$entity] = substr($entity, 1);
 
 				if($use_cache) {
-					$list = $driver->listNodesFromNodegroup(
-						array($entity));
+					$list = $driver->listNodesFromNodegroups(
+						array('eq' => array($entity)));
 				} else {
 					$details =
 						$driver->getNodegroup($entity);
