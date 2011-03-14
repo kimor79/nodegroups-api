@@ -96,7 +96,7 @@ if(array_key_exists('node_re', $input)) {
 	$nodes['re'] = $input['node_re'];
 }
 
-$nodegroups = $driver->getNodegroupsFromNode($nodes, $app, $options);
+$nodegroups = $driver->listNodegroupsFromNode($nodes, $app, $options);
 
 if(!is_array($nodegroups)) {
 	$api->sendHeaders();
@@ -111,6 +111,6 @@ if(empty($nodegroups)) {
 }
 
 $api->sendHeaders();
-$api->showOutput($nodegroups, $driver->getCount(), 200, $driver->error());
+$api->showOutput($nodegroups, $driver->count(), 200, $driver->error());
 
 ?>

@@ -91,6 +91,14 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Get the total from the last query
+	 * @return int
+	 */
+	public function count() {
+		return $this->count;
+	}
+
+	/**
 	 * Delete a nodegroup
 	 * @param string $nodegroup
 	 * @return bool
@@ -118,31 +126,6 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * Get children for given nodegroup
-	 * @param string $nodegroup
-	 * @return mixed array with details (which may be empty) or false
-	 */
-	public function getChildren($nodegroup) {
-		$nodegroup = $this->stripAt($nodegroup);
-
-		return $this->select(array(
-			'_binds' => 's',
-			'_refs' => &$nodegroup,
-			'from' => sprintf("`%sparent_child`", $this->prefix),
-			'select' => '`child`',
-			'where' => '`parent` = ?',
-		));
-	}
-
-	/**
-	 * Get the total from the last query
-	 * @return int
-	 */
-	public function getCount() {
-		return $this->count;
-	}
-
-	/**
 	 * Get a nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
@@ -159,13 +142,30 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * Get list of nodegroups for a node
+	 * List children for given nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array with details (which may be empty) or false
+	 */
+	public function listChildren($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		return $this->select(array(
+			'_binds' => 's',
+			'_refs' => &$nodegroup,
+			'from' => sprintf("`%sparent_child`", $this->prefix),
+			'select' => '`child`',
+			'where' => '`parent` = ?',
+		));
+	}
+
+	/**
+	 * List nodegroups for a node
 	 * @param array $nodes array('re' => array(), 'eq' => array())
 	 * @param string $app
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodegroupsFromNode($input,
+	public function listNodegroupsFromNode($input,
 			$app = '', $options = array()) {
 		$binds = '';
 		$fields = array(
@@ -295,12 +295,12 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * Get a nodes from a nodegroup
+	 * List nodes from a nodegroup
 	 * @param array $nodegroups
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodesFromNodegroup($input, $options = array()) {
+	public function listNodesFromNodegroup($input, $options = array()) {
 		$binds = '';
 		$fields = array(
 			'node' => '`node`',
@@ -407,11 +407,11 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * Get parents for given nodegroup
+	 * List parents for given nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
 	 */
-	public function getParents($nodegroup) {
+	public function listParents($nodegroup) {
 		$nodegroup = $this->stripAt($nodegroup);
 
 		return $this->select(array(

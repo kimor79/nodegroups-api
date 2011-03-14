@@ -60,6 +60,14 @@ class NodegroupsApiDriverTestInMemory {
 	}
 
 	/**
+	 * Get the total from the last query
+	 * @return int
+	 */
+	public function count() {
+		return $this->count;
+	}
+
+	/**
 	 * Delete a nodegroup
 	 * @param string $nodegroup
 	 * @return bool
@@ -80,14 +88,6 @@ class NodegroupsApiDriverTestInMemory {
 	}
 
 	/**
-	 * Get the total from the last query
-	 * @return int
-	 */
-	public function getCount() {
-		return $this->count;
-	}
-
-	/**
 	 * Get a nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
@@ -103,13 +103,13 @@ class NodegroupsApiDriverTestInMemory {
 	}
 
 	/**
-	 * Get list of nodegroups for a node
+	 * List nodegroups for a node
 	 * @param array $nodes array('re' => array(), 'eq' => array())
 	 * @param string $app
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodegroupsFromNode($input,
+	public function listNodegroupsFromNode($input,
 			$app = '', $options = array()) {
 
 		$this->error = 'Not Implemented';
@@ -117,12 +117,12 @@ class NodegroupsApiDriverTestInMemory {
 	}
 
 	/**
-	 * Get a nodes from a nodegroup
+	 * Listnodes from a nodegroup
 	 * @param array $nodegroups
 	 * @param array $options sort col, start, end
 	 * @return mixed array of nodes (which may be empty) or false
 	 */
-	public function getNodesFromNodegroup($input, $options = array()) {
+	public function listNodesFromNodegroup($input, $options = array()) {
 		$nodes = array();
 
 		while(list($key, $group) = each($input)) {
