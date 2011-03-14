@@ -43,12 +43,14 @@ $required = array();
 $optional = array(
 	'expression' => 'expression',
 	'nodegroup' => '_multi_nodegroup_name',
+	'nodegroup_re' => '_multi_',
 	'use_cache' => 'bool',
 );
 
 $sanitize = array(
 	'expression' => 'gpcSlash',
 	'nodegroup' => '_multi_gpcSlash',
+	'nodegroup_re' => '_multi_',
 );
 
 $errors = $api->validateInput($input, $required, $optional);
@@ -60,7 +62,8 @@ if(!empty($errors)) {
 }
 
 if(!array_key_exists('expression', $input)
-		&& !array_key_exists('nodegroup', $input)) {
+		&& !array_key_exists('nodegroup', $input)
+		&& !array_key_exists('nodegroup_re', $input)) {
 	$api->sendHeaders();
 	$api->showOutput(array(), 0, 400, 'Missing expression or nodegroup');
 	exit(0);
@@ -68,6 +71,7 @@ if(!array_key_exists('expression', $input)
 
 $input = $api->sanitizeInput($input, $sanitize);
 
+$nodegroups = array();
 $nodes = array();
 $use_cache = $api->trueFalse($input['use_cache'], true);
 
@@ -84,42 +88,47 @@ if(array_key_exists('expression', $input)) {
 }
 
 if(array_key_exists('nodegroup', $input)) {
+	$nodegroups['eq'] = $input['nodegroup'];
+}
+
+if(array_key_exists('nodegroup_re', $input)) {
+	$nodegroups['re'] = $input['nodegroup_re'];
+}
+
+if(!empty($nodegroups)) {
 	if($use_cache) {
-		$t_nodes = $driver->listNodesFromNodegroup($input['nodegroup'],
-			array());
-		if(!is_array($t_nodes)) {
+		$l_nodes = $driver->listNodesFromNodegroups($nodegroups);
+		if(!is_array($l_nodes)) {
 			$api->sendHeaders();
 			$api->showOutput(array(), 0, 500, $driver->error());
 			exit(0);
 		}
 
-		$nodes = array_merge($nodes, $t_nodes);
+		while(list($junk, $record) = each($l_nodes)) {
+			$nodes[] = $record['node'];
+		}
 	} else {
-		foreach($input['nodegroup'] as $nodegroup) {
-			$details = $driver->getNodegroup($nodegroup);
-			if(!is_array($details)) {
+		$t_nodegroups = $driver->listNodegroups(array(
+			'nodegroup' => $nodegroups),
+			array('outputFields' => array('expression' => true)));
+		if(!is_array($t_nodegroups)) {
+			$api->sendHeaders();
+			$api->showOutput(array(), 0, 500, $driver->error());
+			exit(0);
+		}
+
+		while(list($junk, $record) = each($t_nodegroups)) {
+			$t_parsed = $ngexpr->parseExpression(
+				$record['expression'], false);
+			if(empty($t_parsed)) {
 				$api->sendHeaders();
 				$api->showOutput(array(), 0, 500,
-					$driver->error());
+					'Unable to parse ' .
+					$record['nodegroup']);
 				exit(0);
 			}
 
-			if(empty($details)) {
-				continue;
-			}
-
-			$parsed = $ngexpr->parseExpression(
-				$details['expression'], false);
-			if(empty($parsed)) {
-				$api->sendHeaders();
-				$api->showOutput(array(), 0, 500,
-					'Unable to parse ' . $nodegroup);
-				exit(0);
-			}
-
-			$t_nodes = $parsed['nodes'];
-
-			$nodes = array_merge($nodes, $t_nodes);
+			$nodes = array_merge($nodes, $t_parsed['nodes']);
 		}
 	}
 }
