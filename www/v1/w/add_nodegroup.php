@@ -87,12 +87,6 @@ if(!$driver->addNodegroup($nodegroup, $input)) {
 	exit(0);
 }
 
-// See the comments at
-// http://php.net/manual/en/function.array-unique.php
-// as to why this is faster than array_unique()
-$parsed['nodes'] = array_merge(array_flip(array_flip($parsed['nodes'])));
-$parsed['nodegroups'] = array_merge(array_flip(array_flip($parsed['nodegroups'])));
-
 if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
 	$error = $driver->error();
 	$driver->deleteNodegroup($nodegroup);
