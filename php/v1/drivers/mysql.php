@@ -180,6 +180,120 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * List nodegroups
+	 * @param array $input 'field' => array('re' => array(), 'eq' => array()
+	 * @param array $options sort col, start, end
+	 * @return mixed array of nodegroups (which may be empty) or false
+	 */
+	public function listNodegroups($input, $options = array()) {
+		$binds = '';
+		$fields = array(
+			'description' => '`description`',
+			'nodegroup' => '`nodegroup`',
+			'expression' => '`expression`',
+		);
+		$groups = array();
+		$query = array(
+			'from' => sprintf("`%snodegroups`", $this->prefix),
+		);
+		$refs = array();
+		$select = array();
+		$select_count = '';
+		$where = array();
+
+		$this->count = 0;
+
+		foreach($fields as $name => $field) {
+			if($options['outputFields'][$name]) {
+				$select[$name] = $field;
+			}
+
+			if(!array_key_exists($name, $input)) {
+				continue;
+			}
+
+			$questions = array();
+			$t_where = array();
+
+			if(!array_key_exists('eq', $input[$name])) {
+				$input[$name]['eq'] = array();
+			}
+
+			if(!array_key_exists('re', $input[$name])) {
+				$input[$name]['re'] = array();
+			}
+
+			while(list($key, $val) = each($input[$name]['eq'])) {
+				if($name == 'nodegroup') {
+					$input[$name]['eq'][$key] =
+						$this->stripAt($val);
+				}
+
+				$binds .= 's';
+				$refs[] = &$input[$name]['eq'][$key];
+				$questions[] = '?';
+			}
+
+			if(!empty($questions)) {
+				$t_where[] = sprintf("%s IN (%s)", $field,
+					implode(', ', $questions));
+					
+			}
+
+			while(list($key, $junk) = each($input[$name]['re'])) {
+				$binds .= 's';
+				$refs[] = &$input[$name]['re'][$key];
+				$t_where[] = sprintf("%s REGEXP ?", $field);
+			}
+
+			$where[] = sprintf("(%s)", implode(' OR ', $t_where));
+		}
+
+		if(!empty($select)) {
+			$select['nodegroup'] = '`nodegroup`';
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		$query['_binds'] = $binds;
+		$query['_refs'] = $refs;
+		$query['select'] = implode(', ', $select);
+		$query['where'] = implode(' AND ', $where);
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(`nodegroup`)';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
+					}
+				}
+			} else {
+				$this->count = count($records);
+			}
+		}
+
+		return $records;
+	}
+
+	/**
 	 * List nodegroups for a node
 	 * @param array $nodes array('re' => array(), 'eq' => array())
 	 * @param string $app
