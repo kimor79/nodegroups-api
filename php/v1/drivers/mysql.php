@@ -135,7 +135,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 		return $this->select(array(
 			'_binds' => 's',
-			'_refs' => &$nodegroup,
+			'_refs' => array(&$nodegroup),
 			'from' => sprintf("`%snodegroups`", $this->prefix),
 			'where' => '`nodegroup` = ?',
 		));
@@ -172,7 +172,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 		return $this->select(array(
 			'_binds' => 's',
-			'_refs' => &$nodegroup,
+			'_refs' => array(&$nodegroup),
 			'from' => sprintf("`%sparent_child`", $this->prefix),
 			'select' => '`child`',
 			'where' => '`parent` = ?',
@@ -453,7 +453,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 		return $this->select(array(
 			'_binds' => 's',
-			'_refs' => &$nodegroup,
+			'_refs' => array(&$nodegroup),
 			'from' => sprintf("`%sparent_child`", $this->prefix),
 			'select' => '`parent`',
 			'where' => '`child` = ?',
