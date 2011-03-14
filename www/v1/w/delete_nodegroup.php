@@ -68,7 +68,7 @@ if(empty($existing)) {
 	exit(0);
 }
 
-$has_parents = $driver->listParents($nodegroup);
+$has_parents = $driver->getParents($nodegroup);
 if(!is_array($has_parents)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Checking for parents: ' . $driver->error());

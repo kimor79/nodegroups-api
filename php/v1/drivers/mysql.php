@@ -126,6 +126,23 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Get children for given nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array with details (which may be empty) or false
+	 */
+	public function getChildren($nodegroup) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		return $this->select(array(
+			'_binds' => 's',
+			'_refs' => array(&$nodegroup),
+			'from' => sprintf("`%sparent_child`", $this->prefix),
+			'select' => '`child`',
+			'where' => '`parent` = ?',
+		));
+	}
+
+	/**
 	 * Get a nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
@@ -163,19 +180,19 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * List children for given nodegroup
+	 * Get parents for given nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
 	 */
-	public function listChildren($nodegroup) {
+	public function getParents($nodegroup) {
 		$nodegroup = $this->stripAt($nodegroup);
 
 		return $this->select(array(
 			'_binds' => 's',
 			'_refs' => array(&$nodegroup),
 			'from' => sprintf("`%sparent_child`", $this->prefix),
-			'select' => '`child`',
-			'where' => '`parent` = ?',
+			'select' => '`parent`',
+			'where' => '`child` = ?',
 		));
 	}
 
@@ -555,23 +572,6 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		}
 
 		return $records;
-	}
-
-	/**
-	 * List parents for given nodegroup
-	 * @param string $nodegroup
-	 * @return mixed array with details (which may be empty) or false
-	 */
-	public function listParents($nodegroup) {
-		$nodegroup = $this->stripAt($nodegroup);
-
-		return $this->select(array(
-			'_binds' => 's',
-			'_refs' => array(&$nodegroup),
-			'from' => sprintf("`%sparent_child`", $this->prefix),
-			'select' => '`parent`',
-			'where' => '`child` = ?',
-		));
 	}
 
 	/**

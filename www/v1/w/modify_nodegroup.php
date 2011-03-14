@@ -123,7 +123,7 @@ $api->showOutput(200, 'Modified', $data);
 function doParent($group) {
 	global $driver, $ngexpr;
 
-	$parents = $driver->listParents($group);
+	$parents = $driver->getParents($group);
 	if(!is_array($parents)) {
 		return $driver->error();
 	}
