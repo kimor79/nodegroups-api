@@ -102,6 +102,15 @@ class NodegroupsApiDriverTestInMemory {
 		return false;
 	}
 
+	/** Get nodes from a nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array with nodes (which may be empty) or false
+	 */
+	public function getNodesFromNodegroup($nodegroup) {
+		return $this->listNodesFromNodegroups(array(
+			'eq' => array($nodegroup)));
+	}
+
 	/**
 	 * List nodegroups for a node
 	 * @param array $input array('re' => array(), 'eq' => array())

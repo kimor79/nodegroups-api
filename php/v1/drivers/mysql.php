@@ -142,6 +142,16 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Get nodes from a nodegroup
+	 * @param string $nodegroup
+	 * @return mixed array with nodes (which may be empty) or false
+	 */
+	public function getNodesFromNodegroup($nodegroup) {
+		return $this->listNodesFromNodegroups(array(
+			'eq' => array($nodegroup)));
+	}
+
+	/**
 	 * List children for given nodegroup
 	 * @param string $nodegroup
 	 * @return mixed array with details (which may be empty) or false
