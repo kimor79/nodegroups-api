@@ -60,6 +60,7 @@ $sanitize = array(
 $input = $api->sanitizeInput($input, $sanitize);
 
 $nodegroup = $input['nodegroup'];
+unset($input['nodegroup']);
 
 $existing = $driver->getNodegroup($nodegroup);
 if(!is_array($existing)) {
@@ -74,10 +75,12 @@ if(empty($existing)) {
 	exit(0);
 }
 
-$input = array_merge($existing, $input);
-unset($input['nodegroup']);
+$expr = $existing['expression'];
+if(isset($input['expression'])) {
+	$expr = $input['expression'];
+}
 
-$parsed = $ngexpr->parseExpression($input['expression']);
+$parsed = $ngexpr->parseExpression($expr);
 if(empty($parsed)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Unable to parse expression');
