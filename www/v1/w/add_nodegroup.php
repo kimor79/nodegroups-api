@@ -61,13 +61,6 @@ $input = $api->sanitizeInput($input, $sanitize);
 $nodegroup = $input['nodegroup'];
 unset($input['nodegroup']);
 
-$parsed = $ngexpr->parseExpression($input['expression']);
-if(empty($parsed)) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Unable to parse expression');
-	exit(0);
-}
-
 $existing = $driver->getNodegroup($nodegroup);
 if(!is_array($existing)) {
 	$api->sendHeaders();
@@ -78,6 +71,13 @@ if(!is_array($existing)) {
 if(!empty($existing)) {
 	$api->sendHeaders();
 	$api->showOutput(400, 'Nodegroup already exists');
+	exit(0);
+}
+
+$parsed = $ngexpr->parseExpression($input['expression']);
+if(empty($parsed)) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Unable to parse expression');
 	exit(0);
 }
 
