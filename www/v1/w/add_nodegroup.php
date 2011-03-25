@@ -81,6 +81,19 @@ if(empty($parsed)) {
 	exit(0);
 }
 
+if(!empty($parsed['nodegroups'])) {
+	$children = $driver->listNodegroups(
+		array('nodegroup' => array('eq' => $parsed['nodegroups'])),
+		array('outputFields' => array('nodegroup' => true))
+	);
+
+	if(count($parsed['nodegroups']) != $driver->count()) {
+		$api->sendHeaders();
+		$api->showOutput(400, 'Non-existent nodegroups in expression');
+		exit(0);
+	}
+}
+
 if(!$driver->addNodegroup($nodegroup, $input)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Adding nodegroup: ' . $driver->error());
