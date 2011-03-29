@@ -118,20 +118,17 @@ if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
 
 $data = $driver->getNodegroup($nodegroup);
 
-$time = time();
-$user = ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '';
+// Add a newline to the diff so as not to get the '\ No newline at end of file'
+$h_description = rtrim(xdiff_string_diff('', $data['description'] . "\n"));
+$h_expression = rtrim(xdiff_string_diff('', $data['expression'] . "\n"));
 
-foreach($data as $key => $value) {
-	// Add a newline so as not to get the '\ No newline at end of file'
-	$diff = xdiff_string_diff('', $value . "\n");
-
-	$driver->addHistory($nodegroup, array(
-		'c_time' => $time,
-		'diff' => rtrim($diff),
-		'field' => $key,
-		'user' => $user,
-	));
-}
+$driver->addHistory($nodegroup, array(
+	'action' => 'CREATE',
+	'c_time' => time(),
+	'description' => $h_description,
+	'expression' => $h_expression,
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
 
 $api->sendHeaders();
 $api->showOutput(200, 'Added', $data);

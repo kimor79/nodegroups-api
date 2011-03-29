@@ -58,7 +58,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	/**
 	 * Add history
 	 * @param string $nodegroup
-	 * @param array $details time, user, field, diff
+	 * @param array $details action, c_time, description, expression, user
 	 * @return bool
 	 */
 	public function addHistory($nodegroup, $details = array()) {
@@ -66,14 +66,15 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 		$binds = 's';
 		$fields = array(
+			'action' => '',
 			'c_time' => time(),
-			'diff' => '',
-			'field' => '',
+			'description' => '',
+			'expression' => '',
 			'user' => '',
 		);
 		$refs = array(&$nodegroup);
 
-		$query = sprintf("INSERT INTO `%snodegroup_history_diff` SET ",
+		$query = sprintf("INSERT INTO `%snodegroup_history` SET ",
 			$this->prefix);
 		$query .= '`nodegroup` = ?';
 
