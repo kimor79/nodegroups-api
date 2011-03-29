@@ -27,3 +27,13 @@ CREATE TABLE IF NOT EXISTS `order` (
  UNIQUE KEY (`app`, `nodegroup`),
  CONSTRAINT FOREIGN KEY (`nodegroup`) REFERENCES nodegroups(`nodegroup`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `nodegroup_history_diff` (
+ `nodegroup` VARCHAR(255) NOT NULL,
+ `user` VARCHAR(255) NOT NULL,
+ `c_time` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+ `field` VARCHAR(255) NOT NULL,
+ `diff` LONGTEXT NOT NULL,
+ INDEX (`nodegroup`, `c_time`),
+ INDEX (`c_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

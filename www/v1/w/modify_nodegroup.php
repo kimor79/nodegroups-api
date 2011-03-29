@@ -133,6 +133,25 @@ if($parent_error !== true) {
 
 $data = $driver->getNodegroup($nodegroup);
 
+$time = time();
+$user = ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '';
+
+foreach($data as $key => $value) {
+	if($data[$key] === $existing[$key]) {
+		continue;
+	}
+
+	// Add a newline so as not to get the '\ No newline at end of file'
+	$diff = xdiff_string_diff($existing[$key] . "\n", $value . "\n");
+
+	$driver->addHistory($nodegroup, array(
+		'c_time' => $time,
+		'diff' => rtrim($diff),
+		'field' => $key,
+		'user' => $user,
+	));
+}
+
 $api->sendHeaders();
 $api->showOutput(200, 'Modified', $data);
 

@@ -56,6 +56,53 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Add history
+	 * @param string $nodegroup
+	 * @param array $details time, user, field, diff
+	 * @return bool
+	 */
+	public function addHistory($nodegroup, $details = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$binds = 's';
+		$fields = array(
+			'c_time' => time(),
+			'diff' => '',
+			'field' => '',
+			'user' => '',
+		);
+		$refs = array(&$nodegroup);
+
+		$query = sprintf("INSERT INTO `%snodegroup_history_diff` SET ",
+			$this->prefix);
+		$query .= '`nodegroup` = ?';
+
+		foreach($fields as $key => $value) {
+			$query .= sprintf(", `%s` = ?", $key);
+
+			$refs[$key] = &$fields[$key];
+			if(array_key_exists($key, $details)) {
+				$refs[$key] = &$details[$key];
+			}
+
+			$binds .= 's';
+		}
+
+		array_unshift($refs, $binds);
+
+		$status = $this->queryWrite($query, $refs);
+		if($status == 1) {
+			return true;
+		}
+
+		if($status > 1) {
+			$this->error = 'More than one row added';
+		}
+
+		return false;
+	}
+
+	/**
 	 * Add a nodegroup
 	 * @param string $nodegroup
 	 * @param array $details
