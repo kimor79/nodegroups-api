@@ -82,6 +82,8 @@ if(!empty($has_parents)) {
 	exit(0);
 }
 
+$nodes = $driver->getNodesFromNodegroup($nodegroup);
+
 if(!$driver->deleteNodegroup($nodegroup)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Deleting nodegroup: ' . $driver->error());
@@ -97,6 +99,19 @@ $driver->addHistory($nodegroup, array(
 	'c_time' => time(),
 	'description' => $h_description,
 	'expression' => $h_expression,
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
+
+$driver->addEvent($nodegroup, array(
+	'c_time' => time(),
+	'event' => 'REMOVE',
+	'node' => $nodes,
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
+
+$driver->addEvent($nodegroup, array(
+	'c_time' => time(),
+	'event' => 'DELETE',
 	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
 ));
 

@@ -130,6 +130,19 @@ $driver->addHistory($nodegroup, array(
 	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
 ));
 
+$driver->addEvent($nodegroup, array(
+	'c_time' => time(),
+	'event' => 'CREATE',
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
+
+$driver->addEvent($nodegroup, array(
+	'c_time' => time(),
+	'event' => 'ADD',
+	'node' => $parsed['nodes'],
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
+
 $api->sendHeaders();
 $api->showOutput(200, 'Added', $data);
 

@@ -100,6 +100,11 @@ if(!empty($parsed['nodegroups'])) {
 	}
 }
 
+$nodes = array(
+	'old' => $driver->getNodesFromNodegroup($nodegroup),
+	'new' => $parsed['nodes'],
+);
+
 if(!$driver->modifyNodegroup($nodegroup, $input)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Updating nodegroup: ' . $driver->error());
@@ -155,6 +160,20 @@ $driver->addHistory($nodegroup, array(
 	'c_time' => time(),
 	'description' => $h_description,
 	'expression' => $h_expression,
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
+
+$driver->addEvent($nodegroup, array(
+	'c_time' => time(),
+	'event' => 'ADD',
+	'node' => array_diff($nodes['new'], $nodes['old']),
+	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+));
+
+$driver->addEvent($nodegroup, array(
+	'c_time' => time(),
+	'event' => 'REMOVE',
+	'node' => array_diff($nodes['old'], $nodes['new']),
 	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
 ));
 

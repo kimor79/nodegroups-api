@@ -56,6 +56,56 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Add events
+	 * @param string $nodegroup
+	 * @param array $details c_time, event, node(s), user
+	 * @return bool
+	 */
+	public function addEvent($nodegroup, $details = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$binds = '';
+		$fields = array(
+			'c_time' => time(),
+			'event' => '',
+			'node' => array(''),
+			'user' => '',
+		);
+		$refs = array();
+		$values = array();
+
+		$fields = array_merge($fields, $details);
+
+		$query = sprintf("INSERT INTO `%snodegroup_events` ",
+			$this->prefix);
+		$query .= '(`c_time`, `event`, `node`, `nodegroup`, `user`)';
+		$query .= ' VALUES ';
+
+		while(list($node, $junk) = each($fields['node'])) {
+			$binds .= 'sssss';
+			$values[] = '(?, ?, ?, ?, ?)';
+			$refs = array_merge($refs, array(
+				&$fields['c_time'],
+				&$fields['event'],
+				&$fields['node'][$node],
+				&$nodegroup,
+				&$fields['user'],
+			));
+		}
+
+		$query .= implode(', ', $values);
+
+		array_unshift($refs, $binds);
+
+		$status = $this->queryWrite($query, $refs);
+		if($status >= 1) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Add history
 	 * @param string $nodegroup
 	 * @param array $details action, c_time, description, expression, user
