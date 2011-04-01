@@ -313,6 +313,7 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		$groups = array();
 		$query = array(
 			'from' => sprintf("`%snodegroups`", $this->prefix),
+			'order' => '`nodegroup`',
 		);
 		$refs = array();
 		$select = array();
@@ -367,18 +368,31 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			$where[] = sprintf("(%s)", implode(' OR ', $t_where));
 		}
 
+		if($binds) {
+			$query['_binds'] = $binds;
+		}
+
+		if(!empty($refs)) {
+			$query['_refs'] = $refs;
+		}
+
 		if(!empty($select)) {
 			$select['nodegroup'] = '`nodegroup`';
+
+			$query['select'] = implode(', ', $select);
+		}
+
+		if($options['sortField']) {
+			$query['order'] = $options['sortField'];
 		}
 
 		if(array_key_exists('sortDir', $options)) {
 			$query['order'] .= ' ' . $options['sortDir'];
 		}
 
-		$query['_binds'] = $binds;
-		$query['_refs'] = $refs;
-		$query['select'] = implode(', ', $select);
-		$query['where'] = implode(' AND ', $where);
+		if(!empty($where)) {
+			$query['where'] = implode(' AND ', $where);
+		}
 
 		if($options['startIndex']) {
 			$query['limit'][0] = $options['startIndex'];
