@@ -2,7 +2,7 @@
 
 /**
 
-Copyright (c) 2010, Kimo Rosenbaum and contributors
+Copyright (c) 2011, Kimo Rosenbaum and contributors
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,9 @@ $api->setParameters();
 $input = $_POST;
 
 $required = array(
+	'app' => NULL,
 	'nodegroup' => 'nodegroup_name',
+	'order' => 'digit',
 );
 
 $optional = array();
@@ -49,13 +51,13 @@ if(!empty($errors)) {
 }
 
 $sanitize = array(
+	'app' => 'gpcSlash',
 	'nodegroup' => 'gpcSlash',
 );
 
 $input = $api->sanitizeInput($input, $sanitize);
-$nodegroup = $input['nodegroup'];
 
-$existing = $driver->getNodegroup($nodegroup);
+$existing = $driver->getNodegroup($input['nodegroup']);
 if(!is_array($existing)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Checking for existence: ' . $driver->error());
@@ -68,54 +70,41 @@ if(empty($existing)) {
 	exit(0);
 }
 
-$has_parents = $driver->getParents($nodegroup);
-if(!is_array($has_parents)) {
+$old_order = $driver->getOrder($input['nodegroup'], $input['app']);
+if(!is_array($old_order)) {
 	$api->sendHeaders();
-	$api->showOutput(500, 'Checking for parents: ' . $driver->error());
+	$api->showOutput(500, 'Checking for order: ' . $driver->error());
 	exit(0);
 }
 
-if(!empty($has_parents)) {
+if(!$driver->setOrder($input['nodegroup'], $input['app'], $input['order'])) {
 	$api->sendHeaders();
-	$api->showOutput(400, 'Nodegroup is in use by other nodegroups',
-		$has_parents);
+	$api->showOutput(500, 'Setting order: ' . $driver->error());
 	exit(0);
 }
 
-$nodes = $driver->getNodesFromNodegroup($nodegroup);
+$new_order = $driver->getOrder($input['nodegroup'], $input['app']);
 
-if(!$driver->deleteNodegroup($nodegroup)) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Deleting nodegroup: ' . $driver->error());
-	exit(0);
+if(empty($old_order)) {
+	$driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
+		'action' => 'ADD',
+		'c_time' => time(),
+		'new_order' => $new_order['order'],
+		'user' => ($_SERVER['REMOTE_USER']) ?
+			$_SERVER['REMOTE_USER'] : '',
+	));
+} elseif($old_order['order'] != $new_order['order']) {
+	$driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
+		'action' => 'SET',
+		'c_time' => time(),
+		'new_order' => $new_order['order'],
+		'old_order' => $old_order['order'],
+		'user' => ($_SERVER['REMOTE_USER']) ?
+			$_SERVER['REMOTE_USER'] : '',
+	));
 }
-
-// Add a newline to the diff so as not to get the '\ No newline at end of file'
-$h_description = rtrim(xdiff_string_diff($existing['description'] . "\n", ''));
-$h_expression = rtrim(xdiff_string_diff($existing['expression'] . "\n", ''));
-
-$driver->addHistoryNodegroup($nodegroup, array(
-	'action' => 'DELETE',
-	'c_time' => time(),
-	'description' => $h_description,
-	'expression' => $h_expression,
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
-
-$driver->addEvent($nodegroup, array(
-	'c_time' => time(),
-	'event' => 'REMOVE',
-	'node' => $nodes,
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
-
-$driver->addEvent($nodegroup, array(
-	'c_time' => time(),
-	'event' => 'DELETE',
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
 
 $api->sendHeaders();
-$api->showOutput(200, 'Deleted');
+$api->showOutput(200, 'Order set', $new_order);
 
 ?>

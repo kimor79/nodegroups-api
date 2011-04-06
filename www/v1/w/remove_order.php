@@ -2,7 +2,7 @@
 
 /**
 
-Copyright (c) 2010, Kimo Rosenbaum and contributors
+Copyright (c) 2011, Kimo Rosenbaum and contributors
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@ $api->setParameters();
 $input = $_POST;
 
 $required = array(
-	'description' => NULL,
-	'expression' => 'expression',
+	'app' => NULL,
 	'nodegroup' => 'nodegroup_name',
 );
 
@@ -51,99 +50,39 @@ if(!empty($errors)) {
 }
 
 $sanitize = array(
-	'description' => 'gpcSlash',
-	'expression' => 'gpcSlash',
+	'app' => 'gpcSlash',
 	'nodegroup' => 'gpcSlash',
 );
 
 $input = $api->sanitizeInput($input, $sanitize);
 
-$nodegroup = $input['nodegroup'];
-unset($input['nodegroup']);
-
-$existing = $driver->getNodegroup($nodegroup);
+$existing = $driver->getOrder($input['nodegroup'], $input['app']);
 if(!is_array($existing)) {
 	$api->sendHeaders();
 	$api->showOutput(500, 'Checking for existence: ' . $driver->error());
 	exit(0);
 }
 
-if(!empty($existing)) {
+if(empty($existing)) {
 	$api->sendHeaders();
-	$api->showOutput(400, 'Nodegroup already exists');
+	$api->showOutput(400, 'No such nodegroup/app order');
 	exit(0);
 }
 
-$parsed = $ngexpr->parseExpression($input['expression']);
-if(empty($parsed)) {
+if(!$driver->removeOrder($input['nodegroup'], $input['app'])) {
 	$api->sendHeaders();
-	$api->showOutput(500, 'Unable to parse expression');
+	$api->showOutput(500, 'Removing order: ' . $driver->error());
 	exit(0);
 }
 
-if(!empty($parsed['nodegroups'])) {
-	$children = $driver->listNodegroups(
-		array('nodegroup' => array('eq' => $parsed['nodegroups'])),
-		array('outputFields' => array('nodegroup' => true))
-	);
-
-	if(count($parsed['nodegroups']) != $driver->count()) {
-		$api->sendHeaders();
-		$api->showOutput(400, 'Non-existent nodegroups in expression');
-		exit(0);
-	}
-}
-
-if(!$driver->addNodegroup($nodegroup, $input)) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Adding nodegroup: ' . $driver->error());
-	exit(0);
-}
-
-if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
-	$error = $driver->error();
-	$driver->deleteNodegroup($nodegroup);
-	$api->sendHeaders();
-	$api->showOutput(500, 'Setting Nodes: ' . $error);
-	exit(0);
-}
-
-if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
-	$error = $driver->error();
-	$driver->deleteNodegroup($nodegroup);
-	$api->sendHeaders();
-	$api->showOutput(500, 'Setting Children: ' . $error);
-	exit(0);
-}
-
-$data = $driver->getNodegroup($nodegroup);
-
-// Add a newline to the diff so as not to get the '\ No newline at end of file'
-$h_description = rtrim(xdiff_string_diff('', $data['description'] . "\n"));
-$h_expression = rtrim(xdiff_string_diff('', $data['expression'] . "\n"));
-
-$driver->addHistoryNodegroup($nodegroup, array(
-	'action' => 'CREATE',
+$driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
+	'action' => 'REMOVE',
 	'c_time' => time(),
-	'description' => $h_description,
-	'expression' => $h_expression,
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
-
-$driver->addEvent($nodegroup, array(
-	'c_time' => time(),
-	'event' => 'CREATE',
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
-
-$driver->addEvent($nodegroup, array(
-	'c_time' => time(),
-	'event' => 'ADD',
-	'node' => $parsed['nodes'],
+	'old_order' => $existing['order'],
 	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
 ));
 
 $api->sendHeaders();
-$api->showOutput(200, 'Added', $data);
+$api->showOutput(200, 'Order removed');
 
 ?>

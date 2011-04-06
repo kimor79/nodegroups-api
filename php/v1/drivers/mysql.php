@@ -106,12 +106,12 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
-	 * Add history
+	 * Add nodegroup history
 	 * @param string $nodegroup
 	 * @param array $details action, c_time, description, expression, user
 	 * @return bool
 	 */
-	public function addHistory($nodegroup, $details = array()) {
+	public function addHistoryNodegroup($nodegroup, $details = array()) {
 		$nodegroup = $this->stripAt($nodegroup);
 
 		$binds = 's';
@@ -137,6 +137,62 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			}
 
 			$binds .= 's';
+		}
+
+		array_unshift($refs, $binds);
+
+		$status = $this->queryWrite($query, $refs);
+		if($status == 1) {
+			return true;
+		}
+
+		if($status > 1) {
+			$this->error = 'More than one row added';
+		}
+
+		return false;
+	}
+
+	/**
+	 * Add order history
+	 * @param string $nodegroup
+	 * @param string $app
+	 * @param array $details action, c_time, new_order, old_order, user
+	 * @return bool
+	 */
+	public function addHistoryOrder($nodegroup, $app,
+			$details = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$binds = 'ss';
+		$fields = array(
+			'action' => '',
+			'c_time' => time(),
+			'old_order' => false,
+			'new_order' => false,
+			'user' => '',
+		);
+		$refs = array(&$nodegroup, &$app);
+
+		$query = sprintf("INSERT INTO `%sorder_history` SET ",
+			$this->prefix);
+		$query .= '`nodegroup` = ?, `app` = ?';
+
+		foreach($fields as $key => $value) {
+			if(array_key_exists($key, $details)) {
+				$binds .= 's';
+				$query .= sprintf(", `%s` = ?", $key);
+				$refs[$key] = &$details[$key];
+				continue;
+			}
+
+			if($value !== false) {
+				$binds .= 's';
+				$query .= sprintf(", `%s` = ?", $key);
+				$refs[$key] = &$fields[$key];
+			} else {
+				$query .= sprintf(", `%s` = DEFAULT", $key);
+			}
 		}
 
 		array_unshift($refs, $binds);
@@ -277,6 +333,25 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get order for given nodegroup/app
+	 * @param string $nodegroup
+	 * @param string $app
+	 * @return mixed array with details (which may be empty) or false
+	 */
+	public function getOrder($nodegroup, $app) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		return $this->select(array(
+			'_binds' => 'ss',
+			'_one' => true,
+			'_refs' => array(&$nodegroup, &$app),
+			'from' => sprintf("`%sorder`", $this->prefix),
+			'select' => '*, IFNULL(`order`, 50) AS `order`',
+			'where' => '`nodegroup` = ? AND `app` = ?',
+		));
 	}
 
 	/**
@@ -728,6 +803,35 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Remove nodegroup/app order
+	 * @param string $nodegroup
+	 * @param string $app
+	 * @return bool
+	 */
+	public function removeOrder($nodegroup, $app) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = 'DELETE FROM `' . $this->prefix . 'order` WHERE ';
+		$query .= '`nodegroup` = ? AND `app` = ?';
+
+		$status = $this->queryWrite($query, array('ss',
+			&$nodegroup, &$app));
+		if($status == 1) {
+			return true;
+		}
+
+		if($status === 0) {
+			$this->error = 'No rows deleted';
+		}
+
+		if($status > 1) {
+			$this->error = 'More than one row deleted';
+		}
+				
+		return false;
+	}
+
+	/**
 	 * Set the list of nodegroups included in a nodegroup
 	 * @param string $nodegroup
 	 * @param array $children
@@ -845,6 +949,40 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		$status = $this->queryWrite($query_delete, $save);
 		if($status !== false) {
 			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Set order for given nodegroup
+	 * @param string $nodegroup
+	 * @param string $app
+	 * @param int $order
+	 * @return bool
+	 */
+	public function setOrder($nodegroup, $app, $order) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$binds = 'sss';
+		$refs = array(
+			&$nodegroup,
+			&$app,
+			&$order,
+		);
+
+		$query = sprintf("REPLACE INTO `%sorder` SET ", $this->prefix);
+		$query .= '`nodegroup` = ?, `app` = ?, `order` = ?';
+
+		array_unshift($refs, $binds);
+
+		$status = $this->queryWrite($query, $refs);
+		if($status == 1 || $status == 2) {
+			return true;
+		}
+
+		if($status > 2) {
+			$this->error = 'More than one row added';
 		}
 
 		return false;

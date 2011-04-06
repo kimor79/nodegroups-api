@@ -39,6 +39,19 @@ CREATE TABLE IF NOT EXISTS `nodegroup_history` (
  INDEX (`c_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `order_history` (
+ `nodegroup` VARCHAR(255) NOT NULL,
+ `user` VARCHAR(255) NOT NULL,
+ `c_time` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+ `action` VARCHAR(255) NOT NULL,
+ `app` VARCHAR(255) NOT NULL,
+ `old_order` INT(10) UNSIGNED NOT NULL DEFAULT 50,
+ `new_order` INT(10) UNSIGNED NOT NULL DEFAULT 50,
+ INDEX (`nodegroup`, `app`, `c_time`),
+ INDEX (`app`),
+ INDEX (`c_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS `nodegroup_events` (
  `nodegroup` VARCHAR(255) NOT NULL,
  `user` VARCHAR(255) NOT NULL,

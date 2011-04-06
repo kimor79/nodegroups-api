@@ -155,7 +155,7 @@ if($data['expression'] !== $existing['expression']) {
 		$data['expression'] . "\n"));
 }
 
-$driver->addHistory($nodegroup, array(
+$driver->addHistoryNodegroup($nodegroup, array(
 	'action' => 'MODIFY',
 	'c_time' => time(),
 	'description' => $h_description,
