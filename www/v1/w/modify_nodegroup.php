@@ -41,6 +41,7 @@ $required = array(
 $optional = array(
 	'description' => NULL,
 	'expression' => 'expression',
+	'force' => 'bool',
 );
 
 $errors = $api->validateInput($input, $required, $optional);
@@ -62,6 +63,12 @@ $input = $api->sanitizeInput($input, $sanitize);
 $nodegroup = $input['nodegroup'];
 unset($input['nodegroup']);
 
+$force = false;
+if(array_key_exists('force', $input)) {
+	$force = $api->trueFalse($input['force'], false);
+	unset($input['force']);
+}
+
 $existing = $driver->getNodegroup($nodegroup);
 if(!is_array($existing)) {
 	$api->sendHeaders();
@@ -80,30 +87,38 @@ if(isset($input['expression'])) {
 	$expr = $input['expression'];
 }
 
-$parsed = $ngexpr->parseExpression($expr);
-if(empty($parsed)) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Unable to parse expression');
-	exit(0);
+if($expr != $existing['expression']) {
+	$force = true;
 }
 
-if(!empty($parsed['nodegroups'])) {
-	$children = $driver->listNodegroups(
-		array('nodegroup' => array('eq' => $parsed['nodegroups'])),
-		array('outputFields' => array('nodegroup' => true))
-	);
-
-	if(count($parsed['nodegroups']) != $driver->count()) {
+if($force) {
+	$parsed = $ngexpr->parseExpression($expr);
+	if(empty($parsed)) {
 		$api->sendHeaders();
-		$api->showOutput(400, 'Non-existent nodegroups in expression');
+		$api->showOutput(500, 'Unable to parse expression');
 		exit(0);
 	}
-}
 
-$nodes = array(
-	'old' => $driver->getNodesFromNodegroup($nodegroup),
-	'new' => $parsed['nodes'],
-);
+	if(!empty($parsed['nodegroups'])) {
+		$children = $driver->listNodegroups(
+			array('nodegroup' => array('eq' =>
+				$parsed['nodegroups'])),
+			array('outputFields' => array('nodegroup' => true))
+		);
+
+		if(count($parsed['nodegroups']) != $driver->count()) {
+			$api->sendHeaders();
+			$api->showOutput(400,
+				'Non-existent nodegroups in expression');
+			exit(0);
+		}
+	}
+
+	$nodes = array(
+		'old' => $driver->getNodesFromNodegroup($nodegroup),
+		'new' => $parsed['nodes'],
+	);
+}
 
 if(!$driver->modifyNodegroup($nodegroup, $input)) {
 	$api->sendHeaders();
@@ -111,29 +126,34 @@ if(!$driver->modifyNodegroup($nodegroup, $input)) {
 	exit(0);
 }
 
-// See the comments at
-// http://php.net/manual/en/function.array-unique.php
-// as to why this is faster than array_unique()
-$parsed['nodes'] = array_merge(array_flip(array_flip($parsed['nodes'])));
-$parsed['nodegroups'] = array_merge(array_flip(array_flip($parsed['nodegroups'])));
+if($force) {
 
-if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Setting Nodes: ' . $driver->error());
-	exit(0);
-}
+	// See the comments at
+	// http://php.net/manual/en/function.array-unique.php
+	// as to why this is faster than array_unique()
+	$parsed['nodes'] = array_merge(array_flip(
+		array_flip($parsed['nodes'])));
+	$parsed['nodegroups'] = array_merge(array_flip(
+		array_flip($parsed['nodegroups'])));
 
-if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Setting Children: ' . $driver->error());
-	exit(0);
-}
+	if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
+		$api->sendHeaders();
+		$api->showOutput(500, 'Setting Nodes: ' . $driver->error());
+		exit(0);
+	}
 
-$parent_error = doParent($nodegroup);
-if($parent_error !== true) {
-	$api->sendHeaders();
-	$api->showOutput(500, 'Updating Parents: ' . $parent_error);
-	exit(0);
+	if(!$driver->setChildren($nodegroup, $parsed['nodegroups'])) {
+		$api->sendHeaders();
+		$api->showOutput(500, 'Setting Children: ' . $driver->error());
+		exit(0);
+	}
+
+	$parent_error = doParent($nodegroup);
+	if($parent_error !== true) {
+		$api->sendHeaders();
+		$api->showOutput(500, 'Updating Parents: ' . $parent_error);
+		exit(0);
+	}
 }
 
 $data = $driver->getNodegroup($nodegroup);
@@ -163,19 +183,23 @@ $driver->addHistoryNodegroup($nodegroup, array(
 	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
 ));
 
-$driver->addEvent($nodegroup, array(
-	'c_time' => time(),
-	'event' => 'ADD',
-	'node' => array_diff($nodes['new'], $nodes['old']),
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
+if($force) {
+	$driver->addEvent($nodegroup, array(
+		'c_time' => time(),
+		'event' => 'ADD',
+		'node' => array_diff($nodes['new'], $nodes['old']),
+		'user' => ($_SERVER['REMOTE_USER']) ?
+			$_SERVER['REMOTE_USER'] : '',
+	));
 
-$driver->addEvent($nodegroup, array(
-	'c_time' => time(),
-	'event' => 'REMOVE',
-	'node' => array_diff($nodes['old'], $nodes['new']),
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
+	$driver->addEvent($nodegroup, array(
+		'c_time' => time(),
+		'event' => 'REMOVE',
+		'node' => array_diff($nodes['old'], $nodes['new']),
+		'user' => ($_SERVER['REMOTE_USER']) ?
+			$_SERVER['REMOTE_USER'] : '',
+	));
+}
 
 $api->sendHeaders();
 $api->showOutput(200, 'Modified', $data);
