@@ -158,8 +158,12 @@ if($force) {
 
 $data = $driver->getNodegroup($nodegroup);
 
+$force_history = false;
+
 $h_description = '';
 if($data['description'] !== $existing['description']) {
+	$force_history = true;
+
 	// Add a newline to the diff so as not to get the
 	// '\ No newline at end of file'
 	$h_description = rtrim(xdiff_string_diff(
@@ -169,19 +173,25 @@ if($data['description'] !== $existing['description']) {
 
 $h_expression = '';
 if($data['expression'] !== $existing['expression']) {
+	$force_history = true;
+
 	// Add a newline to the diff so as not to get the
 	// '\ No newline at end of file'
 	$h_expression = rtrim(xdiff_string_diff($existing['expression'] . "\n",
 		$data['expression'] . "\n"));
 }
 
-$driver->addHistoryNodegroup($nodegroup, array(
-	'action' => 'MODIFY',
-	'c_time' => time(),
-	'description' => $h_description,
-	'expression' => $h_expression,
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
-));
+if($force_history) {
+	$h_user = ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '';
+
+	$driver->addHistoryNodegroup($nodegroup, array(
+		'action' => 'MODIFY',
+		'c_time' => time(),
+		'description' => $h_description,
+		'expression' => $h_expression,
+		'h_user' => $user,
+	));
+}
 
 if($force) {
 	$driver->addEvent($nodegroup, array(
