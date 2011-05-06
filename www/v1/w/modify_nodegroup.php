@@ -91,34 +91,32 @@ if($expr != $existing['expression']) {
 	$force = true;
 }
 
-if($force) {
-	$parsed = $ngexpr->parseExpression($expr);
-	if(empty($parsed)) {
+$parsed = $ngexpr->parseExpression($expr);
+if(empty($parsed)) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Unable to parse expression');
+	exit(0);
+}
+
+if(!empty($parsed['nodegroups'])) {
+	$children = $driver->listNodegroups(
+		array('nodegroup' => array('eq' => $parsed['nodegroups'])),
+		array('outputFields' => array('nodegroup' => true))
+	);
+
+	if(count($parsed['nodegroups']) != $driver->count()) {
 		$api->sendHeaders();
-		$api->showOutput(500, 'Unable to parse expression');
+		$api->showOutput(400, 'Non-existent nodegroups in expression',
+			array_diff($parsed['nodegroups'], $children));
 		exit(0);
 	}
+}
 
-	if(!empty($parsed['nodegroups'])) {
-		$children = $driver->listNodegroups(
-			array('nodegroup' => array('eq' =>
-				$parsed['nodegroups'])),
-			array('outputFields' => array('nodegroup' => true))
-		);
-
-		if(count($parsed['nodegroups']) != $driver->count()) {
-			$api->sendHeaders();
-			$api->showOutput(400,
-				'Non-existent nodegroups in expression',
-				array_diff($parsed['nodegroups'], $children));
-			exit(0);
-		}
-	}
-
-	$nodes = array(
-		'old' => $driver->getNodesFromNodegroup($nodegroup),
-		'new' => $parsed['nodes'],
-	);
+$old_nodes = $driver->getNodesFromNodegroup($nodegroup);
+if(!is_array($old_nodes)) {
+	$api->sendHeaders();
+	$api->showOutput(500, 'Current nodes: ' . $driver->error());
+	exit(0);
 }
 
 if(!$driver->modifyNodegroup($nodegroup, $input)) {
@@ -128,7 +126,6 @@ if(!$driver->modifyNodegroup($nodegroup, $input)) {
 }
 
 if($force) {
-
 	// See the comments at
 	// http://php.net/manual/en/function.array-unique.php
 	// as to why this is faster than array_unique()
@@ -137,9 +134,10 @@ if($force) {
 	$parsed['nodegroups'] = array_merge(array_flip(
 		array_flip($parsed['nodegroups'])));
 
-	if(!$driver->setNodes($nodegroup, $parsed['nodes'])) {
+	$group_error = doNodegroup($nodegroup, $old_nodes, $parsed['nodes']);
+	if($group_error !== true) {
 		$api->sendHeaders();
-		$api->showOutput(500, 'Setting Nodes: ' . $driver->error());
+		$api->showOutput(500, 'Setting Nodes: ' . $group_error);
 		exit(0);
 	}
 
@@ -192,24 +190,66 @@ if($force_history) {
 	));
 }
 
-if($force) {
-	$driver->addEvent($nodegroup, array(
-		'c_time' => time(),
-		'event' => 'ADD',
-		'node' => array_diff($nodes['new'], $nodes['old']),
-		'user' => $user,
-	));
-
-	$driver->addEvent($nodegroup, array(
-		'c_time' => time(),
-		'event' => 'REMOVE',
-		'node' => array_diff($nodes['old'], $nodes['new']),
-		'user' => $user,
-	));
-}
-
 $api->sendHeaders();
 $api->showOutput(200, 'Modified', $data);
+
+function doNodegroup($group, $old = false, $new = false) {
+	global $driver, $ngexpr, $user;
+
+	if(!is_array($old)) {
+		$old = $driver->getNodesFromNodegroup($group);
+		if(!is_array($old)) {
+			return $driver->error();
+		}
+	}
+
+	if(!is_array($new)) {
+		$g_details = $driver->getNodegroup($group);
+		if(!is_array($g_details)) {
+			return $driver->error();
+		}
+
+		if($g_details['expression'] != '') {
+			$g_parsed = $ngexpr->parseExpression(
+				$g_details['expression']);
+			if(empty($g_parsed)) {
+				return 'Unable to parse expression';
+			}
+
+			$new = array_merge(array_flip(
+				array_flip($g_parsed['nodes'])));
+		} else {
+			$new = array();
+		}
+	}
+
+	if(!$driver->setNodes($group, $new)) {
+		return $driver->error();
+	}
+
+	$adds = array_diff($new, $old);
+	$removes = array_diff($old, $new);
+
+	if(!empty($adds)) {
+		$driver->addEvent($group, array(
+			'c_time' => time(),
+			'event' => 'ADD',
+			'node' => $adds,
+			'user' => $user,
+		));
+	}
+
+	if(!empty($removes)) {
+		$driver->addEvent($group, array(
+			'c_time' => time(),
+			'event' => 'REMOVE',
+			'node' => $removes,
+			'user' => $user,
+		));
+	}
+
+	return true;
+}
 
 function doParent($group) {
 	global $driver, $ngexpr;
@@ -224,18 +264,9 @@ function doParent($group) {
 	}
 
 	foreach($parents as $parent) {
-		$details = $driver->getNodegroup($parent);
-		if(!is_array($details)) {
-			return $driver->error();
-		}
-
-		$p_parsed = $ngexpr->parseExpression($details['expression']);
-		if(empty($p_parsed)) {
-			return 'Unable to parse expression';
-		}
-
-		if(!$driver->setNodes($parent, $p_parsed['nodes'])) {
-			return $driver->error();
+		$return = doNodegroup($parent);
+		if($return !== true) {
+			return $return;
 		}
 
 		$return = doParent($parent);
