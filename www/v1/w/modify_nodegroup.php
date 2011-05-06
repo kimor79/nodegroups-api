@@ -109,7 +109,8 @@ if($force) {
 		if(count($parsed['nodegroups']) != $driver->count()) {
 			$api->sendHeaders();
 			$api->showOutput(400,
-				'Non-existent nodegroups in expression');
+				'Non-existent nodegroups in expression',
+				array_diff($parsed['nodegroups'], $children));
 			exit(0);
 		}
 	}
