@@ -99,20 +99,20 @@ $driver->addHistoryNodegroup($nodegroup, array(
 	'c_time' => time(),
 	'description' => $h_description,
 	'expression' => $h_expression,
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+	'user' => $user,
 ));
 
 $driver->addEvent($nodegroup, array(
 	'c_time' => time(),
 	'event' => 'REMOVE',
 	'node' => $nodes,
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+	'user' => $user,
 ));
 
 $driver->addEvent($nodegroup, array(
 	'c_time' => time(),
 	'event' => 'DELETE',
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+	'user' => $user,
 ));
 
 $api->sendHeaders();

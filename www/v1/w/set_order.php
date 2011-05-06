@@ -90,8 +90,7 @@ if(empty($old_order)) {
 		'action' => 'ADD',
 		'c_time' => time(),
 		'new_order' => $new_order['order'],
-		'user' => ($_SERVER['REMOTE_USER']) ?
-			$_SERVER['REMOTE_USER'] : '',
+		'user' => $user,
 	));
 } elseif($old_order['order'] != $new_order['order']) {
 	$driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
@@ -99,8 +98,7 @@ if(empty($old_order)) {
 		'c_time' => time(),
 		'new_order' => $new_order['order'],
 		'old_order' => $old_order['order'],
-		'user' => ($_SERVER['REMOTE_USER']) ?
-			$_SERVER['REMOTE_USER'] : '',
+		'user' => $user,
 	));
 }
 

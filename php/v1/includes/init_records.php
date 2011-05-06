@@ -83,4 +83,9 @@ try {
 	exit(0);
 }
 
+$user = '';
+if(array_key_exists('REMOTE_USER', $_SERVER)) {
+	$user = $_SERVER['REMOTE_USER'];
+}
+
 ?>

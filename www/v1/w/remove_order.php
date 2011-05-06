@@ -79,7 +79,7 @@ $driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
 	'action' => 'REMOVE',
 	'c_time' => time(),
 	'old_order' => $existing['order'],
-	'user' => ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '',
+	'user' => $user,
 ));
 
 $api->sendHeaders();

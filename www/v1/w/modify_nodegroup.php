@@ -183,14 +183,12 @@ if($data['expression'] !== $existing['expression']) {
 }
 
 if($force_history) {
-	$h_user = ($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] : '';
-
 	$driver->addHistoryNodegroup($nodegroup, array(
 		'action' => 'MODIFY',
 		'c_time' => time(),
 		'description' => $h_description,
 		'expression' => $h_expression,
-		'h_user' => $user,
+		'user' => $user,
 	));
 }
 
@@ -199,16 +197,14 @@ if($force) {
 		'c_time' => time(),
 		'event' => 'ADD',
 		'node' => array_diff($nodes['new'], $nodes['old']),
-		'user' => ($_SERVER['REMOTE_USER']) ?
-			$_SERVER['REMOTE_USER'] : '',
+		'user' => $user,
 	));
 
 	$driver->addEvent($nodegroup, array(
 		'c_time' => time(),
 		'event' => 'REMOVE',
 		'node' => array_diff($nodes['old'], $nodes['new']),
-		'user' => ($_SERVER['REMOTE_USER']) ?
-			$_SERVER['REMOTE_USER'] : '',
+		'user' => $user,
 	));
 }
 
