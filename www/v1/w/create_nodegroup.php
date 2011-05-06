@@ -124,20 +124,20 @@ $h_expression = rtrim(xdiff_string_diff('', $data['expression'] . "\n"));
 
 $driver->addHistoryNodegroup($nodegroup, array(
 	'action' => 'CREATE',
-	'c_time' => time(),
+	'c_time' => $time,
 	'description' => $h_description,
 	'expression' => $h_expression,
 	'user' => $user,
 ));
 
 $driver->addEvent($nodegroup, array(
-	'c_time' => time(),
+	'c_time' => $time,
 	'event' => 'CREATE',
 	'user' => $user,
 ));
 
 $driver->addEvent($nodegroup, array(
-	'c_time' => time(),
+	'c_time' => $time,
 	'event' => 'ADD',
 	'node' => $parsed['nodes'],
 	'user' => $user,

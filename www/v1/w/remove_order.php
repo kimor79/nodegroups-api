@@ -77,7 +77,7 @@ if(!$driver->removeOrder($input['nodegroup'], $input['app'])) {
 
 $driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
 	'action' => 'REMOVE',
-	'c_time' => time(),
+	'c_time' => $time,
 	'old_order' => $existing['order'],
 	'user' => $user,
 ));

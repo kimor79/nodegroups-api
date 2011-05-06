@@ -83,6 +83,8 @@ try {
 	exit(0);
 }
 
+$time = time();
+
 $user = '';
 if(array_key_exists('REMOTE_USER', $_SERVER)) {
 	$user = $_SERVER['REMOTE_USER'];

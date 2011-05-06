@@ -88,14 +88,14 @@ $new_order = $driver->getOrder($input['nodegroup'], $input['app']);
 if(empty($old_order)) {
 	$driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
 		'action' => 'ADD',
-		'c_time' => time(),
+		'c_time' => $time,
 		'new_order' => $new_order['order'],
 		'user' => $user,
 	));
 } elseif($old_order['order'] != $new_order['order']) {
 	$driver->addHistoryOrder($input['nodegroup'], $input['app'], array(
 		'action' => 'SET',
-		'c_time' => time(),
+		'c_time' => $time,
 		'new_order' => $new_order['order'],
 		'old_order' => $old_order['order'],
 		'user' => $user,
