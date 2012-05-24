@@ -263,7 +263,6 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		$fields = array(
 			'node' => '`node`',
 		);
-		$nodes = array();
 		$query = array(
 			'from' => sprintf("`%snodes`", $this->prefix),
 			'group' => '`node`',
@@ -280,37 +279,41 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 		$select['node'] = '`node`';
 		$select['nodegroups'] = 'COUNT(`nodegroup`) AS `nodegroups`';
 
-		if(!array_key_exists('eq', $input)) {
-			$input['eq'] = array();
-		}
-
-		while(list($key, $group) = each($input['eq'])) {
-			$binds .= 's';
-			$refs['eq' . $key] = &$input['eq'][$key];
-			$questions[] = '?';
-		}
-
-		if(!empty($questions)) {
-			$nodes[] = sprintf("`node` IN (%s)",
-				implode(', ', $questions));
-		}
-
-		if(!array_key_exists('re', $input)) {
-			$input['re'] = array();
-		}
-
-		while(list($key, $group) = each($input['re'])) {
-			$binds .= 's';
-			$refs['re' . $key] = &$input['re'][$key];
-			$nodes[] = '`node` REGEXP ?';
-		}
-
-		if(array_key_exists('outputFields', $options)) {
-			foreach($fields as $key => $field) {
-				if($options['outputFields'][$key]) {
-					$select[$key] = $field;
-				}
+		foreach($fields as $name => $field) {
+			if(!array_key_exists($name, $input)) {
+				continue;
 			}
+
+			$questions = array();
+			$t_where = array();
+
+			if(!array_key_exists('eq', $input[$name])) {
+				$input[$name]['eq'] = array();
+			}
+
+			if(!array_key_exists('re', $input[$name])) {
+				$input[$name]['re'] = array();
+			}
+
+			while(list($key, $val) = each($input[$name]['eq'])) {
+				$binds .= 's';
+				$refs[] = &$input[$name]['eq'][$key];
+				$questions[] = '?';
+			}
+
+			if(!empty($questions)) {
+				$t_where[] = sprintf("%s IN (%s)", $field,
+					implode(', ', $questions));
+					
+			}
+
+			while(list($key, $junk) = each($input[$name]['re'])) {
+				$binds .= 's';
+				$refs[] = &$input[$name]['re'][$key];
+				$t_where[] = sprintf("%s REGEXP ?", $field);
+			}
+
+			$where[] = sprintf("(%s)", implode(' OR ', $t_where));
 		}
 
 		if(array_key_exists('sortDir', $options)) {
@@ -327,9 +330,9 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 
 		$query['select'] = implode(', ', $select);
 
-		if(!empty($nodes)) {
+		if(!empty($where)) {
 			$query['where'] = sprintf("(%s)",
-				implode(' OR ', $nodes));
+				implode(' OR ', $where));
 		}
 
 		if($options['startIndex']) {

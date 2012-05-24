@@ -62,9 +62,7 @@ if(!empty($errors)) {
 $input = $api->sanitizeInput($input, $sanitize);
 
 $keys = array(
-	'description',
-	'expression',
-	'nodegroup',
+	'node',
 );
 
 $options = array(
