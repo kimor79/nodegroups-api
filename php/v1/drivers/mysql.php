@@ -2,7 +2,7 @@
 
 /**
 
-Copyright (c) 2010, Kimo Rosenbaum and contributors
+Copyright (c) 2010-2012, Kimo Rosenbaum and contributors
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -312,6 +312,192 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			'from' => sprintf("`%snodegroups`", $this->prefix),
 			'where' => '`nodegroup` = ?',
 		));
+	}
+
+	/**
+	 * Get nodegroup events
+	 * @param array $nodegroup
+	 * @param array $options sort col, start, end
+	 * @return mixed array of events (which may be empty) or false
+	 */
+	public function getNodegroupEvents($nodegroup, $options = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = array(
+			'_binds' => 's',
+			'_refs' => array(&$nodegroup),
+			'from' => sprintf("`%snodegroup_events`",
+				$this->prefix),
+			'order' => '`c_time` DESC',
+			'where' => '`nodegroup` = ?',
+		);
+
+		$this->count = 0;
+
+		if($options['sortField']) {
+			$query['order'] = $options['sortField'];
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(`nodegroup`)';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
+					}
+				}
+			} else {
+				$this->count = count($records);
+			}
+		}
+
+		return $records;
+	}
+
+	/**
+	 * Get history
+	 * @param array $nodegroup
+	 * @param array $options sort col, start, end
+	 * @return mixed array of history (which may be empty) or false
+	 */
+	public function getNodegroupHistory($nodegroup, $options = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$query = array(
+			'_binds' => 's',
+			'_refs' => array(&$nodegroup),
+			'from' => sprintf("`%snodegroup_history`",
+				$this->prefix),
+			'order' => '`c_time`',
+			'where' => '`nodegroup` = ?',
+		);
+
+		$this->count = 0;
+
+		if($options['sortField']) {
+			$query['order'] = $options['sortField'];
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(`nodegroup`)';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
+					}
+				}
+			} else {
+				$this->count = count($records);
+			}
+		}
+
+		return $records;
+	}
+
+	/**
+	 * Get nodegroup order
+	 * @param array $nodegroup
+	 * @param array $options sort col, start, end
+	 * @return mixed array of order (which may be empty) or false
+	 */
+	public function getNodegroupOrder($nodegroup, $options = array()) {
+		$nodegroup = $this->stripAt($nodegroup);
+
+		$fields = array(
+			'app',
+			'nodegroup',
+			'order',
+		);
+
+		$query = array(
+			'_binds' => 's',
+			'_refs' => array(&$nodegroup),
+			'from' => sprintf("`%sorder`",
+				$this->prefix),
+			'order' => '`order` DESC',
+			'where' => '`nodegroup` = ?',
+		);
+
+		$this->count = 0;
+
+		if($options['sortField']) {
+			if(in_array($options['sortField'], $fields)) {
+				$query['order'] =
+					'`' . $options['sortField'] . '`';
+			}
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(`nodegroup`)';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
+					}
+				}
+			} else {
+				$this->count = count($records);
+			}
+		}
+
+		return $records;
 	}
 
 	/**
