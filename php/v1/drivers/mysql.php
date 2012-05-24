@@ -253,6 +253,117 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 	}
 
 	/**
+	 * Get the number of nodegroups per node
+	 * @param array $input
+	 * @param array $options sort col, start, end
+	 * @return mixed array of nodes (which may be empty) or false
+	 */
+	public function countNodegroups($input, $options = array()) {
+		$binds = '';
+		$fields = array(
+			'node' => '`node`',
+		);
+		$nodes = array();
+		$query = array(
+			'from' => sprintf("`%snodes`", $this->prefix),
+			'group' => '`node`',
+			'order' => '`node`',
+		);
+		$questions = array();
+		$refs = array();
+		$select = array();
+		$select_count = '';
+		$where = array();
+
+		$this->count = 0;
+
+		$select['node'] = '`node`';
+		$select['nodegroups'] = 'COUNT(`nodegroup`) AS `nodegroups`';
+
+		if(!array_key_exists('eq', $input)) {
+			$input['eq'] = array();
+		}
+
+		while(list($key, $group) = each($input['eq'])) {
+			$binds .= 's';
+			$refs['eq' . $key] = &$input['eq'][$key];
+			$questions[] = '?';
+		}
+
+		if(!empty($questions)) {
+			$nodes[] = sprintf("`node` IN (%s)",
+				implode(', ', $questions));
+		}
+
+		if(!array_key_exists('re', $input)) {
+			$input['re'] = array();
+		}
+
+		while(list($key, $group) = each($input['re'])) {
+			$binds .= 's';
+			$refs['re' . $key] = &$input['re'][$key];
+			$nodes[] = '`node` REGEXP ?';
+		}
+
+		if(array_key_exists('outputFields', $options)) {
+			foreach($fields as $key => $field) {
+				if($options['outputFields'][$key]) {
+					$select[$key] = $field;
+				}
+			}
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		if($binds) {
+			$query['_binds'] = $binds;
+		}
+
+		if($refs) {
+			$query['_refs'] = $refs;
+		}
+
+		$query['select'] = implode(', ', $select);
+
+		if(!empty($nodes)) {
+			$query['where'] = sprintf("(%s)",
+				implode(' OR ', $nodes));
+		}
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(`node`)';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
+					}
+				}
+			} else {
+				$this->count = count($records);
+			}
+		}
+
+		return $records;
+	}
+
+	/**
 	 * Delete a nodegroup
 	 * @param string $nodegroup
 	 * @return bool
@@ -312,6 +423,63 @@ class NodegroupsApiDriverMySQL extends ApiProducerDriverMySQL {
 			'from' => sprintf("`%snodegroups`", $this->prefix),
 			'where' => '`nodegroup` = ?',
 		));
+	}
+
+	/**
+	 * Get node events
+	 * @param array $node
+	 * @param array $options sort col, start, end
+	 * @return mixed array of events (which may be empty) or false
+	 */
+	public function getNodeEvents($node, $options = array()) {
+		$query = array(
+			'_binds' => 's',
+			'_refs' => array(&$node),
+			'from' => sprintf("`%snodegroup_events`",
+				$this->prefix),
+			'order' => '`c_time` DESC',
+			'where' => '`node` = ?',
+		);
+
+		$this->count = 0;
+
+		if($options['sortField']) {
+			$query['order'] = $options['sortField'];
+		}
+
+		if(array_key_exists('sortDir', $options)) {
+			$query['order'] .= ' ' . $options['sortDir'];
+		}
+
+		if($options['startIndex']) {
+			$query['limit'][0] = $options['startIndex'];
+		}
+
+		if($options['numResults']) {
+			$query['limit'][1] = $options['numResults'];
+		}
+
+		$records = $this->select($query);
+		if(is_array($records)) {
+			if(array_key_exists('limit', $query)) {
+				unset($query['limit']);
+				unset($query['order']);
+				$query['select'] = 'COUNT(`node`)';
+				$query['select'] .= ' AS `count`';
+
+				$total = $this->select($query);
+				if(is_array($total)) {
+					foreach($total as $count) {
+						$this->count = $count['count'];
+						break;
+					}
+				}
+			} else {
+				$this->count = count($records);
+			}
+		}
+
+		return $records;
 	}
 
 	/**
