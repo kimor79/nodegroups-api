@@ -168,6 +168,46 @@ class NodegroupsAPIV2DriverNodegroupsMySQL extends APIProducerV2DriverMySQL {
 	}
 
 	/**
+	 * Modify a nodegroup
+	 * @param array $input
+	 * @return mixed array with details or false
+	 */
+	public function modifyNodegroup($input) {
+		$binds = '';
+		$fields = array(
+			'description' => '`description`',
+			'expression' => '`expression`',
+		);
+		$query = 'UPDATE `' . $this->prefix . 'nodegroups` SET ';
+		$sets = array();
+		$status = false;
+		$values = array();
+
+		list($binds, $sets, $values) =
+			$this->prepFields($fields, $input);
+
+		$query .= implode(', ', $sets);
+
+		$binds .= 's';
+		$values[] = stripAt($input['nodegroup']);
+		$query .= ' WHERE `nodegroup` = ? LIMIT 1';
+
+		$status = $this->queryWrite($query, $binds, $values);
+		if($status === 0 || $status === 1) {
+			return $this->getNodegroupByID($input['nodegroup']);
+		}
+
+		if($status > 1) {
+			$this->error = 'More than one row updated';
+			if($this->query_on_error) {
+				$this->error .= ': ' . $query;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Set the children nodegroups for given nodegroup
 	 * Anything not in $children will be removed
 	 * @param string $nodegroup
