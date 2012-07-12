@@ -4,7 +4,7 @@ my $uri = 'http://' . $ENV{'MY_VM'} .
 $TESTS = [
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Missing fields',
+	'description' => 'v2/w/create_nodegroup.php - Missing fields',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -25,7 +25,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Extra fields',
+	'description' => 'v2/w/create_nodegroup.php - Extra fields',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -49,7 +49,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Missing few',
+	'description' => 'v2/w/create_nodegroup.php - Missing few',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -70,7 +70,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Invalid nodegroup',
+	'description' => 'v2/w/create_nodegroup.php - Invalid nodegroup',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -92,7 +92,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Invalid expression',
+	'description' => 'v2/w/create_nodegroup.php - Invalid expression',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -115,7 +115,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Good 1',
+	'description' => 'v2/w/create_nodegroup.php - Good 1',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -142,7 +142,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Dupe 1',
+	'description' => 'v2/w/create_nodegroup.php - Dupe 1',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -189,7 +189,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Multiple expression 1',
+	'description' => 'v2/w/create_nodegroup.php - Multiple expression 1',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -215,7 +215,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Good 2',
+	'description' => 'v2/w/create_nodegroup.php - Good 2',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -242,7 +242,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - No such child',
+	'description' => 'v2/w/create_nodegroup.php - No such child',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -265,7 +265,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Self child',
+	'description' => 'v2/w/create_nodegroup.php - Self child',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -288,7 +288,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Good 3',
+	'description' => 'v2/w/create_nodegroup.php - Good 3',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -335,7 +335,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Good 4',
+	'description' => 'v2/w/create_nodegroup.php - Good 4',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -362,7 +362,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Empty nodegroup',
+	'description' => 'v2/w/create_nodegroup.php - Empty nodegroup',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -385,7 +385,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Empty description',
+	'description' => 'v2/w/create_nodegroup.php - Empty description',
 	'uri' => $uri,
 	'requests' => [
 		{
@@ -408,7 +408,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v1/w/create_nodegroup.php - Empty fields',
+	'description' => 'v2/w/create_nodegroup.php - Empty fields',
 	'uri' => $uri,
 	'requests' => [
 		{
