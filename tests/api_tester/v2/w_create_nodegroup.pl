@@ -361,4 +361,73 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v1/w/create_nodegroup.php - Empty nodegroup',
+	'uri' => $uri,
+	'requests' => [
+		{
+			'json' => {
+				'description' => 'foobar',
+				'expression' => 'foobar',
+				'nodegroup' => '',
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
+{
+	'description' => 'v1/w/create_nodegroup.php - Empty description',
+	'uri' => $uri,
+	'requests' => [
+		{
+			'json' => {
+				'description' => '',
+				'expression' => 'foobar',
+				'nodegroup' => 'empty' . $UNIQUE,
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
+{
+	'description' => 'v1/w/create_nodegroup.php - Empty fields',
+	'uri' => $uri,
+	'requests' => [
+		{
+			'json' => {
+				'description' => '',
+				'expression' => 'foobar',
+				'nodegroup' => '',
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
 ];
