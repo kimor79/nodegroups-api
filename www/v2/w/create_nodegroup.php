@@ -43,6 +43,11 @@ if($errors) {
 	exit(0);
 }
 
+if(!$api['authn']->isAuthenticated()) {
+	$api['output']->sendData(401, 'Not authenticated');
+	exit(0);
+}
+
 $input = $api['input']->removeValues($input);
 $input = array_merge($defaults, $input);
 $input = $api['input']->gpcSlashInput($input);

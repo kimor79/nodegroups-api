@@ -47,6 +47,11 @@ if($errors) {
 	exit(0);
 }
 
+if(!$api['authn']->isAuthenticated()) {
+	$api['output']->sendData(401, 'Not authenticated');
+	exit(0);
+}
+
 if(array_key_exists('expression', $input)) {
 	// This is a very hack way to allow an empty expression.
 	// If the expression is empty (''), it will be removed by
