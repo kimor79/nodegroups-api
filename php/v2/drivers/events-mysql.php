@@ -55,8 +55,7 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 			'timestamp' => '`timestamp`',
 			'user' => '`user`',
 		);
-		$query = 'INSERT INTO `' . $this->prefix .
-			'nodegroup_events` SET ';
+		$query = 'INSERT INTO `' . $this->prefix . 'events` SET ';
 		$sets = array();
 		$status = false;
 		$values = array();
@@ -93,7 +92,7 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 			'timestamp' => '`timestamp`',
 			'user' => '`user`',
 		);
-		$query = 'INSERT INTO `' . $this->prefix . 'nodegroup_events` ';
+		$query = 'INSERT INTO `' . $this->prefix . 'events` ';
 		$sets = array();
 		$status = false;
 		$values = array();

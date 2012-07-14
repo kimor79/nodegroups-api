@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `nodegroup_events` (
+CREATE TABLE IF NOT EXISTS `events` (
  `id` VARCHAR(255) NOT NULL,
  `nodegroup` VARCHAR(255) NOT NULL,
  `user` VARCHAR(255) NOT NULL,
