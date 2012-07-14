@@ -21,6 +21,14 @@ class NodegroupsAPIV2Input extends APIProducerV2Input {
 		return $this->sanitizeInput_tolower($input);
 	}
 
+	protected function validateInput_app($input) {
+		if(strlen($input) <= 1024) {
+			return true;
+		}
+
+		return false;
+	}
+
 	protected function validateInput_expression($input) {
 		global $ngexpr;
 		return $ngexpr->validateExpression($input);
