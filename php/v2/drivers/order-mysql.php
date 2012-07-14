@@ -45,6 +45,10 @@ class NodegroupsAPIV2DriverOrderMySQL extends APIProducerV2DriverMySQL {
 			$input['nodegroup'] = stripAt($input['nodegroup']);
 		}
 
+		if(array_key_exists('app', $input)) {
+			$input['_appsha'] = hash('sha256', $input['app']);
+		}
+
 		list($binds, $sets, $values) =
 			$this->prepFields($fields, $input);
 
