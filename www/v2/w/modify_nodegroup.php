@@ -12,6 +12,7 @@ $current = array();
 $defaults = array();
 $details = array();
 $errors = array();
+$event_id = new MongoId() . '';
 $exists = array();
 $force = false;
 $force_history = false;
@@ -187,6 +188,7 @@ if($force_history) {
 
 	$drivers['v2_events']->addEvent(array(
 		'event' => 'MODIFY',
+		'id' => $event_id,
 		'nodegroup' => $details['nodegroup'],
 		'timestamp' => $time,
 		'user' => $api['authn']->getUser(),
@@ -199,6 +201,7 @@ if($force) {
 
 	$drivers['v2_events']->addEvent(array(
 		'event' => 'ADD',
+		'id' => $event_id,
 		'nodegroup' => $details['nodegroup'],
 		'nodes' => $add_nodes,
 		'timestamp' => $time,
@@ -207,6 +210,7 @@ if($force) {
 
 	$drivers['v2_events']->addEvent(array(
 		'event' => 'REMOVE',
+		'id' => $event_id,
 		'nodegroup' => $details['nodegroup'],
 		'nodes' => $rm_nodes,
 		'timestamp' => $time,

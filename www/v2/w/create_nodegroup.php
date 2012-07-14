@@ -13,6 +13,7 @@ $defaults = array(
 );
 $details = array();
 $errors = array();
+$event_id = new MongoId() . '';
 $exists = array();
 $h_desc = '';
 $h_expr = '';
@@ -136,6 +137,7 @@ $drivers['v2_nodegroups']->addNodegroupHistory(array(
 
 $drivers['v2_events']->addEvent(array(
 	'event' => 'CREATE',
+	'id' => $event_id,
 	'nodegroup' => $details['nodegroup'],
 	'timestamp' => $time,
 	'user' => $api['authn']->getUser(),
@@ -143,6 +145,7 @@ $drivers['v2_events']->addEvent(array(
 
 $drivers['v2_events']->addEvent(array(
 	'event' => 'ADD',
+	'id' => $event_id,
 	'nodegroup' => $details['nodegroup'],
 	'nodes' => $parsed['nodes'],
 	'timestamp' => $time,

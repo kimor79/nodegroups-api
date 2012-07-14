@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS `nodegroup_events` (
+ `id` VARCHAR(255) NOT NULL,
  `nodegroup` VARCHAR(255) NOT NULL,
  `user` VARCHAR(255) NOT NULL,
  `timestamp` INT(10) UNSIGNED NOT NULL DEFAULT 0,

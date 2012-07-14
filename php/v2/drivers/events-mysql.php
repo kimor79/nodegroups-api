@@ -49,6 +49,7 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 		$binds = '';
 		$fields = array(
 			'event' => '`event`',
+			'id' => '`id`',
 			'node' => '`node`',
 			'nodegroup' => '`nodegroup`',
 			'timestamp' => '`timestamp`',
@@ -87,6 +88,7 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 		$binds = '';
 		$fields = array(
 			'event' => '`event`',
+			'id' => '`id`',
 			'nodegroup' => '`nodegroup`',
 			'timestamp' => '`timestamp`',
 			'user' => '`user`',
