@@ -55,7 +55,7 @@ $TESTS = [
 	'requests' => [
 		{
 			'json' => {
-				'description' => 'test',
+				'nodegroup' => 'test',
 			},
 		},
 	],
