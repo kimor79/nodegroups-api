@@ -18,7 +18,7 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => re('Missing'),
 				'status' => 400,
 			},
@@ -42,7 +42,7 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => re('Extra'),
 				'status' => 400,
 			},
@@ -63,7 +63,7 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => re('Missing'),
 				'status' => 400,
 			},
@@ -85,7 +85,7 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => re('Invalid'),
 				'status' => 400,
 			},
@@ -108,7 +108,7 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => re('Invalid'),
 				'status' => 400,
 			},
@@ -204,7 +204,7 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => 'Multiple "nodegroup" not allowed',
 				'status' => 400,
 			},
@@ -334,7 +334,7 @@ $TESTS = [
 
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => any({}, []),
 				'message' => re('recursion'),
 				'status' => 418,
 			},
