@@ -62,8 +62,7 @@ if(!is_array($exists)) {
 }
 
 if(empty($exists)) {
-	$api['output']->sendData(404, 'No such nodegroup', array(
-		'details' => $exists));
+	$api['output']->sendData(404, 'No such nodegroup');
 	exit(0);
 }
 
