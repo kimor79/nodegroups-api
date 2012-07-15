@@ -131,7 +131,7 @@ if(!empty($parsed['nodegroups'])) {
 
 	if(count($parsed['nodegroups']) !=
 			$drivers['v2_nodegroups']->getCount()) {
-		$api['output']->sendData(404, 'Non-existent nodegroups', array(
+		$api['output']->sendData(424, 'Non-existent nodegroups', array(
 			'details' => array_diff($parsed['nodegroups'], $exists)
 		));
 		exit(0);

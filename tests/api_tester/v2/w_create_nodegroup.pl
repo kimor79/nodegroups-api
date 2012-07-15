@@ -256,9 +256,9 @@ $TESTS = [
 	'responses' => [
 		{
 			'body' => {
-				'details' => ignore(),
+				'details' => bag('noexist' . $UNIQUE),
 				'message' => re('exist'),
-				'status' => 404,
+				'status' => 424,
 			},
 		},
 	],
