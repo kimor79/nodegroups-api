@@ -153,9 +153,11 @@ class NodegroupsAPIV2DriverOrderMySQL extends APIProducerV2DriverMySQL {
 		$binds = '';
 		$fields = array(
 			'_appsha' => '`_appsha`',
+			'action' => '`action`',
 			'app' => '`app`',
 			'nodegroup' => '`nodegroup`',
-			'order' => '`order`',
+			'old_order' => '`old_order`',
+			'new_order' => '`new_order`',
 			'timestamp' => '`timestamp`',
 			'user' => '`user`',
 		);

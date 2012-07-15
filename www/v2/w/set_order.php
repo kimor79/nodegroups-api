@@ -7,6 +7,7 @@ $drivers_needed = array(
 
 include 'nodegroups/api/v2/includes/init_details.php';
 
+$current = array();
 $defaults = array(
 	'order' => '100',
 );
@@ -66,6 +67,12 @@ if(empty($exists)) {
 	exit(0);
 }
 
+$current = $drivers['v2_order']->getOrder($input);
+if(!is_array($current)) {
+	$api['output']->sendData(500, $drivers['v2_order']->getError());
+	exit(0);
+}
+
 $details = $drivers['v2_order']->setOrder($input);
 if(!$details) {
 	$api['output']->sendData(500, $drivers['v2_order']->getError());
@@ -74,9 +81,19 @@ if(!$details) {
 
 $api['output']->sendData(200, 'Order set', array('details' => $details));
 
-$history = $details;
-$history['timestamp'] = time();
-$history['user'] = $api['authn']->getUser();
+$history = array(
+	'action' => 'ADD',
+	'app' => $details['app'],
+	'nodegroup' => $details['nodegroup'],
+	'new_order' => $details['order'],
+	'timestamp' => time(),
+	'user' => $api['authn']->getUser(),
+);
+
+if(array_key_exists('order', $current)) {
+	$history['action'] = 'SET';
+	$history['old_order'] = $current['order'];
+}
 
 $drivers['v2_order']->setOrderHistory($history);
 
