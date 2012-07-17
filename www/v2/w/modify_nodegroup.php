@@ -1,5 +1,9 @@
 <?php
 
+$consumers_needed = array(
+	'v2_self',
+);
+
 $drivers_needed = array(
 	'v2_events' => 'rw',
 	'v2_nodegroups' => 'rw',
@@ -11,6 +15,7 @@ include 'nodegroups/api/v2/includes/init_details.php';
 $current = array();
 $defaults = array();
 $details = array();
+$do_parents = array();
 $errors = array();
 $event_id = new MongoId() . '';
 $exists = array();
@@ -27,6 +32,7 @@ $optional = array(
 $old = array();
 $output_params = array();
 $params = array();
+$parents = array();
 $parsed = array();
 $required = array(
 	'nodegroup' => 'nodegroup_name',
@@ -93,6 +99,21 @@ $old['nodes'] =
 if(!is_array($old['nodes'])) {
 	$api['output']->sendData(500, 'Current nodes: ' .
 		$drivers['v2_nodes']->getError());
+	exit(0);
+}
+
+$old['children'] =
+	$drivers['v2_nodegroups']->getChildren($current['nodegroup']);
+if(!is_array($old['children'])) {
+	$api['output']->sendData(500, 'Current children: ' .
+		$drivers['v2_nodegroups']->getError());
+	exit(0);
+}
+
+$parents = $drivers['v2_nodegroups']->getParents($current['nodegroup']);
+if(!is_array($parents)) {
+	$api['output']->sendData(500, 'Current parents: ' .
+		$drivers['v2_nodegroups']->getError());
 	exit(0);
 }
 
@@ -221,6 +242,17 @@ if($force) {
 		'timestamp' => $time,
 		'user' => $api['authn']->getUser(),
 	));
+
+	$do_parents = array_diff($parents['nodegroups'], $parents['inherited']);
+	foreach ($do_parents as $parent) {
+		$consumers['v2_self']->getDetails('/v2/w/modify_nodegroup.php',
+			array(
+				'json_post' => array(
+					'force' => 1,
+					'nodegroup' => $parent,
+				),
+			));
+	}
 }
 
 ?>

@@ -530,6 +530,74 @@ $TESTS = [
 },
 
 {
+	'description' => 'v2/w/modify_nodegroup.php - Good 6',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'description',
+				'expression' => 'expression',
+				'nodegroup' => 'good6a' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'description1',
+				'expression' => '@good6a' . $UNIQUE,
+				'nodegroup' => 'good6b' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $mod,
+			'json' => {
+				'expression' => 'expression1',
+				'nodegroup' => 'good6a' . $UNIQUE,
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'description',
+					'expression' => 'expression',
+					'nodegroup' => 'good6a' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'description1',
+					'expression' => '@good6a' . $UNIQUE,
+					'nodegroup' => 'good6b' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'description',
+					'expression' => 'expression1',
+					'nodegroup' => 'good6a' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 200,
+			},
+		},
+	],
+},
+
+{
 	'description' => 'v2/w/modify_nodegroup.php - Empty description',
 	'requests' => [
 		{

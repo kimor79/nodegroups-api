@@ -123,6 +123,38 @@ class NodegroupsAPIV2DriverNodegroupsMySQL extends APIProducerV2DriverMySQL {
 	}
 
 	/**
+	 * Get the list of children for given nodegroup
+	 * @param string $nodegroup
+	 * @return array children, inherited
+	 */
+	public function getChildren($nodegroup) {
+		$inherited = array();
+		$children = array();
+
+		$nodegroup = stripAt($nodegroup);
+
+		$data = $this->select(array(
+			'_binds' => 's',
+			'_values' => array($nodegroup),
+			'from' => '`' . $this->prefix . 'children`',
+			'where' => '`nodegroup` = ?',
+		));
+
+		while(list($junk, $datum) = each($data)) {
+			$children[] = $datum['child'];
+
+			if($datum['inherited']) {
+				$inherited[] = $datum['child'];
+			}
+		}
+
+		return array(
+			'inherited' => $inherited,
+			'nodegroups' => $children,
+		);
+	}
+
+	/**
 	 * Get a nodegroup by name
 	 * @param string $nodegroup
 	 * @return mixed array (which may be empty) of details or false
@@ -165,6 +197,38 @@ class NodegroupsAPIV2DriverNodegroupsMySQL extends APIProducerV2DriverMySQL {
 		$select = array_merge($this->applyParameters(), $select);
 
 		return $this->select($select);
+	}
+
+	/**
+	 * Get the list of parents for given nodegroup
+	 * @param string $nodegroup
+	 * @return array children, inherited
+	 */
+	public function getParents($nodegroup) {
+		$inherited = array();
+		$parents = array();
+
+		$nodegroup = stripAt($nodegroup);
+
+		$data = $this->select(array(
+			'_binds' => 's',
+			'_values' => array($nodegroup),
+			'from' => '`' . $this->prefix . 'children`',
+			'where' => '`child` = ?',
+		));
+
+		while(list($junk, $datum) = each($data)) {
+			$parents[] = $datum['nodegroup'];
+
+			if($datum['inherited']) {
+				$inherited[] = $datum['nodegroup'];
+			}
+		}
+
+		return array(
+			'inherited' => $inherited,
+			'nodegroups' => $parents,
+		);
 	}
 
 	/**
