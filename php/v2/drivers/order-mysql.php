@@ -141,6 +141,53 @@ class NodegroupsAPIV2DriverOrderMySQL extends APIProducerV2DriverMySQL {
 	}
 
 	/**
+	 * Delete from order
+	 * @param array $input app, nodegroup
+	 * @return bool
+	 */
+	public function removeOrderings($input) {
+		$binds = '';
+		$fields = array(
+			'_appsha' => '`_appsha`',
+			'app' => '`app`',
+			'nodegroup' => '`nodegroup`',
+		);
+		$query = 'DELETE FROM `' . $this->prefix . 'order` WHERE ';
+		$sets = array();
+		$status = false;
+		$values = array();
+
+		if(array_key_exists('nodegroup', $input)) {
+			$input['nodegroup'] = stripAt($input['nodegroup']);
+		}
+
+		if(array_key_exists('app', $input)) {
+			$input['_appsha'] = hash('sha256', $input['app']);
+		}
+
+		list($binds, $sets, $values) =
+			$this->prepFields($fields, $input);
+
+		if(empty($sets)) {
+			$this->error = 'Missing where';
+			return false;
+		}
+
+		$query .= implode(' AND ', $sets);
+
+		$status = $this->queryWrite($query, $binds, $values);
+		if($status === 0 || $status === 1) {
+			return true;
+		}
+
+		if($status > 1) {
+			$this->error = 'More than one row deleted';
+		}
+
+		return false;
+	}
+
+	/**
 	 * Set order for a nodegroup
 	 * @param array $input
 	 * @return mixed array with details or false
