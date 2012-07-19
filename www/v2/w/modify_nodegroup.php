@@ -136,7 +136,7 @@ if(empty($parsed)) {
 
 if(!empty($parsed['nodegroups'])) {
 	$exists = $drivers['v2_nodegroups']->getNodegroups(
-		array('nodegroup' => array('eq', $parsed['nodegroups'])),
+		array('nodegroup' => array('eq' => $parsed['nodegroups'])),
 		array('outputFields' => array('nodegroup' => true)));
 	if(!is_array($exists)) {
 		$api['output']->sendData(500, 'Checking children: ' .
