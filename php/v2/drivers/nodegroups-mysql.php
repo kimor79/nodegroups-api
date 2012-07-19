@@ -101,16 +101,16 @@ class NodegroupsAPIV2DriverNodegroupsMySQL extends APIProducerV2DriverMySQL {
 	 * @param string $nodegroup
 	 * @return bool
 	 */
-	public function deleteNodegroup($input) {
+	public function deleteNodegroup($nodegroup) {
 		$binds = 's';
-		$query = 'DELETE FROM `' . $this->prefix . 'nodegroup`' .
+		$query = 'DELETE FROM `' . $this->prefix . 'nodegroups`' .
 			' WHERE `nodegroup` = ? LIMIT 1';
 		$status = false;
 		$values = array();
 
-		$input = stripAt($input);
+		$nodegroup = stripAt($nodegroup);
 
-		$status = $this->queryWrite($query, 's', array($input));
+		$status = $this->queryWrite($query, 's', array($nodegroup));
 		if($status === 0 || $status === 1) {
 			return true;
 		}
