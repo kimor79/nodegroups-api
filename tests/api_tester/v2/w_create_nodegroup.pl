@@ -430,4 +430,51 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v2/w/create_nodegroup.php - Good 5',
+	'uri' => $uri,
+	'requests' => [
+		{
+			'json' => {
+				'description' => 'good5a' . $UNIQUE,
+				'expression' => '',
+				'nodegroup' => 'good5a' . $UNIQUE,
+			},
+		},
+
+		{
+			'json' => {
+				'description' => 'good5b' . $UNIQUE,
+				'expression' => '@good5a' . $UNIQUE,
+				'nodegroup' => 'good5b' . $UNIQUE,
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good5a' . $UNIQUE,
+					'expression' => '',
+					'nodegroup' => 'good5a' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good5b' . $UNIQUE,
+					'expression' => '@good5a' . $UNIQUE,
+					'nodegroup' => 'good5b' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+	],
+},
+
 ];
