@@ -74,7 +74,7 @@ $TESTS = [
 					'nodegroup' => 'noparams1' . $UNIQUE,
 				}),
 				'message' => ignore(),
-				'recordsReturned' => re('\d+'),,
+				'recordsReturned' => re('\d+'),
 				'sortDir' => 'asc',
 				'sortField' => 'nodegroup',
 				'startIndex' => 0,
@@ -156,7 +156,7 @@ $TESTS = [
 				'sortDir' => 'asc',
 				'sortField' => 'nodegroup',
 				'status' => 200,
-				'totalRecords' => 1
+				'totalRecords' => 1,
 			},
 		},
 	],
