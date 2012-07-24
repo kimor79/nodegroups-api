@@ -179,11 +179,18 @@ class NodegroupsAPIV2DriverNodegroupsMySQL extends APIProducerV2DriverMySQL {
 	public function getNodegroups($search) {
 		// TODO: stripAt
 
+		$output_fields = array(
+			'`description`',
+			'`expression`',
+			'`nodegroup`',
+		);
+
 		$parsed = $this->parseQuery($search);
 		$select = array(
 			'_binds' => $parsed['binds'],
 			'_values' => $parsed['values'],
 			'from' => '`' . $this->prefix . 'nodegroups`',
+			'select' => implode(', ', $output_fields),
 			'where' => $parsed['where'],
 		);
 
