@@ -4,6 +4,13 @@ include_once 'api_producer/v2/drivers/mysql.php';
 
 class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 
+	protected $order = array(
+		'ADD' => 1,
+		'CREATE' => 0,
+		'DELETE' => 3,
+		'REMOVE' => 2,
+	);
+
 	public function __construct($slave_okay, $config = array()) {
 		if(!array_key_exists('database', $config)) {
 			$config['database'] = 'nodegroups';
@@ -24,6 +31,13 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 	public function addEvent($input) {
 		if(array_key_exists('nodegroup', $input)) {
 			$input['nodegroup'] = stripAt($input['nodegroup']);
+		}
+
+		if(array_key_exists('event', $input)) {
+			if(array_key_exists($input['event'], $this->order)) {
+				$input['_order'] =
+					$this->order[$input['event']];
+			}
 		}
 
 		if(array_key_exists('nodes', $input)) {
@@ -48,6 +62,7 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 	protected function addEventSingle($input) {
 		$binds = '';
 		$fields = array(
+			'_order' => '`_order`',
 			'event' => '`event`',
 			'id' => '`id`',
 			'node' => '`node`',
@@ -86,6 +101,7 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 	public function addEventMulti($nodes, $input) {
 		$binds = '';
 		$fields = array(
+			'_order' => '`_order`',
 			'event' => '`event`',
 			'id' => '`id`',
 			'nodegroup' => '`nodegroup`',
@@ -123,6 +139,60 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Search events
+	 * @param array $search (as built by buildQuery())
+	 * @return mixed array (which may be empty) of details or false
+	 */
+	public function getEvents($search) {
+		// TODO: stripAt
+
+		$output_fields = array(
+			'`event`',
+			'`id`',
+			'`node`',
+			'`nodegroup`',
+			'`timestamp`',
+			'`user`',
+		);
+
+		$parsed = $this->parseQuery($search);
+		$select = array(
+			'_binds' => $parsed['binds'],
+			'_values' => $parsed['values'],
+			'from' => '`' . $this->prefix . 'events`',
+			'select' => implode(', ', $output_fields),
+			'where' => $parsed['where'],
+		);
+
+		$count = $this->select(array_merge($select, array(
+			'_one' => true,
+			'select' => 'COUNT(*) AS `count`',
+		)));
+
+		$this->count = $count['count'];
+
+		$select = array_merge($this->applyParameters(), $select);
+
+		if($this->getParameter('sortField') === 'timestamp') {
+			$select['order'] .= ', `id`';
+
+			if(!is_null($this->getParameter('sortDir'))) {
+				$select['order'] .= ' ' .
+					$this->getParameter('sortDir');
+			}
+
+			$select['order'] .= ', `_order`';
+
+			if(!is_null($this->getParameter('sortDir'))) {
+				$select['order'] .= ' ' .
+					$this->getParameter('sortDir');
+			}
+		}
+
+		return $this->select($select);
 	}
 }
 
