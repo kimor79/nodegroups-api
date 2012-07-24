@@ -179,7 +179,7 @@ $TESTS = [
 		{
 			'body' => {
 				'details' => any({}, []),
-				'message' => ignore('such'),
+				'message' => re('such'),
 				'status' => 404,
 			},
 		},
