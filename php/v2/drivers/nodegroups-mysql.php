@@ -172,6 +172,44 @@ class NodegroupsAPIV2DriverNodegroupsMySQL extends APIProducerV2DriverMySQL {
 	}
 
 	/**
+	 * Search history
+	 * @param array $search (as built by buildQuery())
+	 * @return mixed array (which may be empty) of details or false
+	 */
+	public function getHistory($search) {
+		// TODO: stripAt
+
+		$output_fields = array(
+			'`action`',
+			'`description`',
+			'`expression`',
+			'`nodegroup`',
+			'`timestamp`',
+			'`user`',
+		);
+
+		$parsed = $this->parseQuery($search);
+		$select = array(
+			'_binds' => $parsed['binds'],
+			'_values' => $parsed['values'],
+			'from' => '`' . $this->prefix . 'nodegroup_history`',
+			'select' => implode(', ', $output_fields),
+			'where' => $parsed['where'],
+		);
+
+		$count = $this->select(array_merge($select, array(
+			'_one' => true,
+			'select' => 'COUNT(*) AS `count`',
+		)));
+
+		$this->count = $count['count'];
+
+		$select = array_merge($this->applyParameters(), $select);
+
+		return $this->select($select);
+	}
+
+	/**
 	 * Search nodegroups
 	 * @param array $search (as built by buildQuery())
 	 * @return mixed array (which may be empty) of details or false

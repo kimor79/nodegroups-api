@@ -150,8 +150,8 @@ $api['output']->sendData(200, 'Nodegroup deleted');
 
 // Add a newline to the diff so as not to get
 // the '\ No newline at end of file'
-$h_desc = rtrim(xdiff_string_diff($current['description'] . "\n", "\n"));
-$h_expr = rtrim(xdiff_string_diff($current['expression'] . "\n", "\n"));
+$h_desc = rtrim(xdiff_string_diff($current['description'] . "\n", ''));
+$h_expr = rtrim(xdiff_string_diff($current['expression'] . "\n", ''));
 
 $drivers['v2_nodegroups']->addNodegroupHistory(array(
 	'action' => 'DELETE',
