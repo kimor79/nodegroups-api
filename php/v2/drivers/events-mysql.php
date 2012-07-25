@@ -177,13 +177,6 @@ class NodegroupsAPIV2DriverEventsMySQL extends APIProducerV2DriverMySQL {
 		$select = array_merge($this->applyParameters(), $select);
 
 		if($this->getParameter('sortField') === 'timestamp') {
-			$select['order'] .= ', `id`';
-
-			if(!is_null($this->getParameter('sortDir'))) {
-				$select['order'] .= ' ' .
-					$this->getParameter('sortDir');
-			}
-
 			$select['order'] .= ', `_order`';
 
 			if(!is_null($this->getParameter('sortDir'))) {

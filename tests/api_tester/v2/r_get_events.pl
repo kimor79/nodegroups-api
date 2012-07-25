@@ -321,7 +321,7 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => [
+				'records' => bag(
 					{
 					'event' => 'ADD',
 					'id' => ignore(),
@@ -357,7 +357,7 @@ $TESTS = [
 					'timestamp' => re('\d+'),
 					'user' => ignore(),
 					},
-				],
+				),
 				'message' => ignore(),
 				'recordsReturned' => 4,
 				'sortDir' => 'desc',
