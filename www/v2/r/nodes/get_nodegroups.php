@@ -1,6 +1,7 @@
 <?php
 
 $drivers_needed = array(
+	'v2_nodegroups' => 'ro',
 	'v2_nodes' => 'ro',
 	'v2_order' => 'ro',
 );
@@ -154,6 +155,15 @@ if(array_key_exists('app', $input)) {
 
 	$records = array_slice($records,
 		$params['startIndex'], $params['numResults']);
+}
+
+if($api['output']->getParameter('subDetails')) {
+	while(list($key, $record) = each($records)) {
+		$records[$key]['nodegroup'] =
+			$drivers['v2_nodegroups']->getNodegroupByID(
+				$record['nodegroup']);
+	}
+	reset($records);
 }
 
 $api['output']->sendData($records, $total, 200, 'OK');

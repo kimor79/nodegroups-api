@@ -627,4 +627,128 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v2/r/nodes/get_nodegroups.php - Good 8',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good8a' . $UNIQUE,
+				'expression' => 'good8' . $UNIQUE,
+				'nodegroup' => 'good8a' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good8b' . $UNIQUE,
+				'expression' => 'good8' . $UNIQUE,
+				'nodegroup' => 'good8b' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $set,
+			'json' => {
+				'app' => 'good8' . $UNIQUE,
+				'nodegroup' => 'good8b' . $UNIQUE,
+				'order' => 1,
+			},
+		},
+
+		{
+			'uri' => $get,
+			'get' => {
+				'sortField' => 'order',
+				'subDetails' => 1,
+			},
+			'json' => {
+				'app' => 'good8' . $UNIQUE,
+				'node' => 'good8' . $UNIQUE,
+			},
+		}
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good8a' . $UNIQUE,
+					'expression' => 'good8' . $UNIQUE,
+					'nodegroup' => 'good8a' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good8b' . $UNIQUE,
+					'expression' => 'good8' . $UNIQUE,
+					'nodegroup' => 'good8b' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'app' => 'good8' . $UNIQUE,
+					'nodegroup' => 'good8b' . $UNIQUE,
+					'order' => 1,
+				},
+				'message' => ignore(),
+				'status' => 200,
+			},
+		},
+
+		{
+			'body' => {
+				'records' => [
+					{
+					'app' => 'good8' . $UNIQUE,
+					'inherited' => 0,
+					'node' => 'good8' . $UNIQUE,
+					'nodegroup' => {
+						'description' =>
+							'good8b' . $UNIQUE,
+						'expression' =>
+							'good8' . $UNIQUE,
+						'nodegroup' =>
+							'good8b' . $UNIQUE,
+					},
+					'order' => 1,
+					},
+
+					{
+					'app' => 'good8' . $UNIQUE,
+					'inherited' => 0,
+					'node' => 'good8' . $UNIQUE,
+					'nodegroup' => {
+						'description' =>
+							'good8a' . $UNIQUE,
+						'expression' =>
+							'good8' . $UNIQUE,
+						'nodegroup' =>
+							'good8a' . $UNIQUE,
+					},
+					'order' => 100,
+					},
+				],
+				'message' => ignore(),
+				'recordsReturned' => 2,
+				'sortDir' => 'asc',
+				'sortField' => 'order',
+				'startIndex' => 0,
+				'status' => 200,
+				'totalRecords' => 2,
+			},
+		},
+	],
+},
+
 ];
