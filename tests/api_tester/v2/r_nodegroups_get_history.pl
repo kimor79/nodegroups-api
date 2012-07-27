@@ -3,20 +3,20 @@ my $add = 'http://' . $ENV{'MY_VM'} .
 my $mod = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/modify_nodegroup.php';
 my $del = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/delete_nodegroup.php';
+	'/nodegroups/api/v2/w/delete_nodegroup.php';
 my $get = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/get_node_counts.php';
+	'/nodegroups/api/v2/r/nodegroups/get_history.php';
 
 $TESTS = [
 
 {
-	'description' => 'v2/r/get_node_counts.php - Extra fields',
+	'description' => 'v2/r/nodegroups/get_history.php - Extra fields',
 	'uri' => $get,
 	'requests' => [
 		{
 			'json' => {
 				'foo' => 'test',
-				'node' => 'test',
+				'nodegroup' => 'test',
 			},
 		},
 	],
@@ -26,8 +26,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => re('Extra'),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 400,
 				'totalRecords' => 0,
@@ -37,7 +37,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - No params',
+	'description' => 'v2/r/nodegroups/get_history.php - No params',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -68,15 +68,22 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => superbagof({
-					'inherited' => 0,
-					'node' => 'noparams1' . $UNIQUE,
-					'nodegroups' => 1,
-				}),
+				'records' => superbagof(
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+noparams1" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,1 @@' .
+						"\n+noparams1" . $UNIQUE,
+					'nodegroup' => 'noparams1' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
 				'recordsReturned' => re('\d+'),
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => re('\d+'),
@@ -86,12 +93,12 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - Invalid node',
+	'description' => 'v2/r/nodegroups/get_history.php - Invalid nodegroup',
 	'uri' => $get,
 	'requests' => [
 		{
 			'json' => {
-				'node' => 'space space',
+				'nodegroup' => 'space space',
 			},
 		},
 	],
@@ -101,8 +108,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => re('Invalid'),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 400,
 				'totalRecords' => 0,
@@ -112,7 +119,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - Good 1',
+	'description' => 'v2/r/nodegroups/get_history.php - Good 1',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -126,7 +133,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'node' => 'good1' . $UNIQUE,
+				'nodegroup' => 'good1' . $UNIQUE,
 			},
 		},
 	],
@@ -145,16 +152,23 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => [{
-					'inherited' => 0,
-					'node' => 'good1' . $UNIQUE,
-					'nodegroups' => 1,
-				}],
+				'records' => [
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good1" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,1 @@' .
+						"\n+good1" . $UNIQUE,
+					'nodegroup' => 'good1' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				],
 				'message' => ignore(),
 				'recordsReturned' => 1,
 				'startIndex' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'status' => 200,
 				'totalRecords' => 1,
 			},
@@ -163,12 +177,12 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - no-exist 1',
+	'description' => 'v2/r/nodegroups/get_history.php - no-exist 1',
 	'uri' => $get,
 	'requests' => [
 		{
 			'json' => {
-				'node' => 'noexist' . $UNIQUE,
+				'nodegroup' => 'noexist' . $UNIQUE,
 			},
 		},
 	],
@@ -178,8 +192,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => ignore(),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => 0,
@@ -189,13 +203,13 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - No exist 2',
+	'description' => 'v2/r/nodegroups/get_history.php - No exist 2',
 	'requests' => [
 		{
 			'uri' => $add,
 			'json' => {
 				'description' => 'foobar',
-				'expression' => 'exist2' . $UNIQUE,
+				'expression' => '',
 				'nodegroup' => 'exist2' . $UNIQUE,
 			},
 		},
@@ -203,7 +217,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'node' => 'noexist2' . $UNIQUE,
+				'nodegroup' => 'noexist2' . $UNIQUE,
 			},
 		},
 	],
@@ -212,7 +226,7 @@ $TESTS = [
 			'body' => {
 				'details' => {
 					'description' => 'foobar',
-					'expression' => 'exist2' . $UNIQUE,,
+					'expression' => '',
 					'nodegroup' => 'exist2' . $UNIQUE,
 				},
 				'message' => ignore(),
@@ -225,8 +239,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => ignore(),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => 0,
@@ -236,7 +250,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - Good 3',
+	'description' => 'v2/r/nodegroups/get_history.php - Good 3',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -259,7 +273,10 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'node' => 'good3a' . $UNIQUE,
+				'nodegroup' => [
+					'good3a' . $UNIQUE,
+					'good3b' . $UNIQUE,
+				],
 			},
 		}
 	],
@@ -290,25 +307,43 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => [{
-					'inherited' => 0,
-					'node' => 'good3a' . $UNIQUE,
-					'nodegroups' => 2,
-				}],
+				'records' => bag(
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good3a" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,1 @@' .
+						"\n+good3a" . $UNIQUE,
+					'nodegroup' => 'good3b' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good3a" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,1 @@' .
+						"\n+good3a" . $UNIQUE,
+					'nodegroup' => 'good3a' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
-				'recordsReturned' => 1,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'recordsReturned' => 2,
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
-				'totalRecords' => 1,
+				'totalRecords' => 2,
 			},
 		},
 	],
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - Good 4',
+	'description' => 'v2/r/nodegroups/get_history.php - Good 4',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -322,7 +357,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'node_re' => $UNIQUE,
+				'nodegroup_re' => $UNIQUE,
 			},
 		}
 	],
@@ -341,15 +376,22 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => superbagof({
-					'inherited' => 0,
-					'node' => 'good4' . $UNIQUE,
-					'nodegroups' => 1,
-				}),
+				'records' => superbagof(
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good4" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,1 @@' .
+						"\n+good4" . $UNIQUE,
+					'nodegroup' => 'good4' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
 				'recordsReturned' => re('\d+'),
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => re('\d+'),
@@ -359,30 +401,28 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_node_counts.php - Good 5',
+	'description' => 'v2/r/nodegroups/get_history.php - Good 5',
 	'requests' => [
 		{
 			'uri' => $add,
 			'json' => {
-				'description' => 'good5a' . $UNIQUE,
-				'expression' => 'good5a' . $UNIQUE,
-				'nodegroup' => 'good5a' . $UNIQUE,
+				'description' => 'good5' . $UNIQUE,
+				'expression' => 'good5' . $UNIQUE,
+				'nodegroup' => 'good5' . $UNIQUE,
 			},
 		},
 
 		{
-			'uri' => $add,
+			'uri' => $del,
 			'json' => {
-				'description' => 'good5a' . $UNIQUE,
-				'expression' => '@good5a' . $UNIQUE,
-				'nodegroup' => 'good5b' . $UNIQUE,
+				'nodegroup' => 'good5' . $UNIQUE,
 			},
 		},
 
 		{
 			'uri' => $get,
 			'json' => {
-				'node' => 'good5a' . $UNIQUE,
+				'nodegroup' => 'good5' . $UNIQUE,
 			},
 		}
 	],
@@ -390,9 +430,9 @@ $TESTS = [
 		{
 			'body' => {
 				'details' => {
-					'description' => 'good5a' . $UNIQUE,
-					'expression' => 'good5a' . $UNIQUE,
-					'nodegroup' => 'good5a' . $UNIQUE,
+					'description' => 'good5' . $UNIQUE,
+					'expression' => 'good5' . $UNIQUE,
+					'nodegroup' => 'good5' . $UNIQUE,
 				},
 				'message' => ignore(),
 				'status' => 201,
@@ -401,30 +441,44 @@ $TESTS = [
 
 		{
 			'body' => {
-				'details' => {
-					'description' => 'good5a' . $UNIQUE,
-					'expression' => '@good5a' . $UNIQUE,
-					'nodegroup' => 'good5b' . $UNIQUE,
-				},
+				'details' => any({}, []),
 				'message' => ignore(),
-				'status' => 201,
+				'status' => 200,
 			},
 		},
 
 		{
 			'body' => {
-				'records' => [{
-					'inherited' => 1,
-					'node' => 'good5a' . $UNIQUE,
-					'nodegroups' => 2,
-				}],
+				'records' => bag(
+					{
+					'action' => 'DELETE',
+					'description' => '@@ -1,1 +0,0 @@' .
+						"\n-good5" . $UNIQUE,
+					'expression' => '@@ -1,1 +0,0 @@' .
+						"\n-good5" . $UNIQUE,
+					'nodegroup' => 'good5' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good5" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,1 @@' .
+						"\n+good5" . $UNIQUE,
+					'nodegroup' => 'good5' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
-				'recordsReturned' => 1,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
+				'recordsReturned' => 2,
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
-				'totalRecords' => 1,
+				'totalRecords' => 2,
 			},
 		},
 	],

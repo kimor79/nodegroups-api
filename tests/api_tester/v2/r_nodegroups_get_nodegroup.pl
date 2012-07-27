@@ -3,12 +3,12 @@ my $add = 'http://' . $ENV{'MY_VM'} .
 my $del = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/delete_nodegroup.php';
 my $get = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/get_nodegroup.php';
+	'/nodegroups/api/v2/r/nodegroups/get_nodegroup.php';
 
 $TESTS = [
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Missing fields',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Missing fields',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -29,7 +29,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Extra fields',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Extra fields',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -51,7 +51,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Missing few',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Missing few',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -70,7 +70,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Invalid nodegroup',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Invalid nodegroup',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -91,7 +91,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Add Get Del Get',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Add Get Del Get',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -167,7 +167,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - no-exist 1',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - no-exist 1',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -202,7 +202,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Multiple nodegroup 1',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Multiple nodegroup 1',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -226,7 +226,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - No exist 2',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - No exist 2',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -268,7 +268,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroup.php - Good 3',
+	'description' => 'v2/r/nodegroups/get_nodegroup.php - Good 3',
 	'requests' => [
 		{
 			'uri' => $add,

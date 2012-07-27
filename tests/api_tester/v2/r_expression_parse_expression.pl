@@ -1,12 +1,12 @@
 my $add = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/create_nodegroup.php';
 my $parse = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/parse_expression.php';
+	'/nodegroups/api/v2/r/expression/parse_expression.php';
 
 $TESTS = [
 
 {
-	'description' => 'v2/r/parse_expression.php - Missing fields',
+	'description' => 'v2/r/expression/parse_expression.php - Missing fields',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -27,7 +27,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Extra fields',
+	'description' => 'v2/r/expression/parse_expression.php - Extra fields',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -49,7 +49,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Invalid expression',
+	'description' => 'v2/r/expression/parse_expression.php - Invalid expression',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -70,7 +70,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Good 1',
+	'description' => 'v2/r/expression/parse_expression.php - Good 1',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -96,7 +96,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Dupe 1',
+	'description' => 'v2/r/expression/parse_expression.php - Dupe 1',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -122,7 +122,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Multiple expression 1',
+	'description' => 'v2/r/expression/parse_expression.php - Multiple expression 1',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -146,7 +146,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Good 2',
+	'description' => 'v2/r/expression/parse_expression.php - Good 2',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -195,7 +195,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - No such child',
+	'description' => 'v2/r/expression/parse_expression.php - No such child',
 	'uri' => $parse,
 	'requests' => [
 		{
@@ -216,7 +216,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/parse_expression.php - Good 4',
+	'description' => 'v2/r/expression/parse_expression.php - Good 4',
 	'uri' => $parse,
 	'requests' => [
 		{

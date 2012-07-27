@@ -3,14 +3,14 @@ my $add = 'http://' . $ENV{'MY_VM'} .
 my $mod = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/modify_nodegroup.php';
 my $del = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/delete_nodegroup.php';
+	'/nodegroups/api/v2/w/delete_nodegroup.php';
 my $get = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/get_nodegroups.php';
+	'/nodegroups/api/v2/r/events/get_events.php';
 
 $TESTS = [
 
 {
-	'description' => 'v2/r/get_nodegroups.php - Extra fields',
+	'description' => 'v2/r/events/get_events.php - Extra fields',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -26,8 +26,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => re('Extra'),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 400,
 				'totalRecords' => 0,
@@ -37,7 +37,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - No params',
+	'description' => 'v2/r/events/get_events.php - No params',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -68,15 +68,29 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => superbagof({
-					'description' => 'noparams1' . $UNIQUE,
-					'expression' => 'noparams1' . $UNIQUE,
+				'records' => superbagof(
+					{
+					'event' => 'CREATE',
+					'id' => ignore(),
+					'node' => '',
 					'nodegroup' => 'noparams1' . $UNIQUE,
-				}),
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'ADD',
+					'id' => ignore(),
+					'node' => 'noparams1' . $UNIQUE,
+					'nodegroup' => 'noparams1' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
 				'recordsReturned' => re('\d+'),
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => re('\d+'),
@@ -86,7 +100,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - Invalid nodegroup',
+	'description' => 'v2/r/events/get_events.php - Invalid nodegroup',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -101,8 +115,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => re('Invalid'),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 400,
 				'totalRecords' => 0,
@@ -112,7 +126,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - Good 1',
+	'description' => 'v2/r/events/get_events.php - Good 1',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -145,25 +159,39 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => [{
-					'description' => 'good1' . $UNIQUE,
-					'expression' => 'good1' . $UNIQUE,
+				'records' => [
+					{
+					'event' => 'ADD',
+					'id' => ignore(),
+					'node' => 'good1' . $UNIQUE,
 					'nodegroup' => 'good1' . $UNIQUE,
-				}],
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'CREATE',
+					'id' => ignore(),
+					'node' => '',
+					'nodegroup' => 'good1' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				],
 				'message' => ignore(),
-				'recordsReturned' => 1,
+				'recordsReturned' => 2,
 				'startIndex' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'status' => 200,
-				'totalRecords' => 1,
+				'totalRecords' => 2,
 			},
 		},
 	],
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - no-exist 1',
+	'description' => 'v2/r/events/get_events.php - no-exist 1',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -178,8 +206,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => ignore(),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => 0,
@@ -189,7 +217,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - No exist 2',
+	'description' => 'v2/r/events/get_events.php - No exist 2',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -225,8 +253,8 @@ $TESTS = [
 				'records' => any({}, []),
 				'message' => ignore(),
 				'recordsReturned' => 0,
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => 0,
@@ -236,7 +264,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - Good 3',
+	'description' => 'v2/r/events/get_events.php - Good 3',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -293,33 +321,57 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => [
+				'records' => bag(
 					{
-					'description' => 'good3a' . $UNIQUE,
-					'expression' => 'good3a' . $UNIQUE,
-					'nodegroup' => 'good3a' . $UNIQUE,
+					'event' => 'ADD',
+					'id' => ignore(),
+					'node' => 'good3a' . $UNIQUE,
+					'nodegroup' => 'good3b' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
 					},
 
 					{
-					'description' => 'good3a' . $UNIQUE,
-					'expression' => 'good3a' . $UNIQUE,
+					'event' => 'CREATE',
+					'id' => ignore(),
+					'node' => '',
 					'nodegroup' => 'good3b' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
 					},
-				],
+
+					{
+					'event' => 'ADD',
+					'id' => ignore(),
+					'node' => 'good3a' . $UNIQUE,
+					'nodegroup' => 'good3a' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'CREATE',
+					'id' => ignore(),
+					'node' => '',
+					'nodegroup' => 'good3a' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
-				'recordsReturned' => 2,
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'recordsReturned' => 4,
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
-				'totalRecords' => 2,
+				'totalRecords' => 4,
 			},
 		},
 	],
 },
 
 {
-	'description' => 'v2/r/get_nodegroups.php - Good 4',
+	'description' => 'v2/r/events/get_events.php - Good 4',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -352,18 +404,130 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => superbagof({
-					'description' => 'good4' . $UNIQUE,
-					'expression' => 'good4' . $UNIQUE,
+				'records' => superbagof(
+					{
+					'event' => 'ADD',
+					'id' => ignore(),
+					'node' => 'good4' . $UNIQUE,
 					'nodegroup' => 'good4' . $UNIQUE,
-				}),
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'CREATE',
+					'id' => ignore(),
+					'node' => '',
+					'nodegroup' => 'good4' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
 				'message' => ignore(),
 				'recordsReturned' => re('\d+'),
-				'sortDir' => 'asc',
-				'sortField' => 'nodegroup',
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => re('\d+'),
+			},
+		},
+	],
+},
+
+{
+	'description' => 'v2/r/events/get_events.php - Good 5',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good5' . $UNIQUE,
+				'expression' => 'good5' . $UNIQUE,
+				'nodegroup' => 'good5' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $del,
+			'json' => {
+				'nodegroup' => 'good5' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $get,
+			'json' => {
+				'nodegroup' => 'good5' . $UNIQUE,
+			},
+		}
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good5' . $UNIQUE,
+					'expression' => 'good5' . $UNIQUE,
+					'nodegroup' => 'good5' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => ignore(),
+				'status' => 200,
+			},
+		},
+
+		{
+			'body' => {
+				'records' => superbagof(
+					{
+					'event' => 'REMOVE',
+					'id' => ignore(),
+					'node' => 'good5' . $UNIQUE,
+					'nodegroup' => 'good5' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'DELETE',
+					'id' => ignore(),
+					'node' => '',
+					'nodegroup' => 'good5' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'ADD',
+					'id' => ignore(),
+					'node' => 'good5' . $UNIQUE,
+					'nodegroup' => 'good5' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'event' => 'CREATE',
+					'id' => ignore(),
+					'node' => '',
+					'nodegroup' => 'good5' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				),
+				'message' => ignore(),
+				'recordsReturned' => 4,
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
+				'startIndex' => 0,
+				'status' => 200,
+				'totalRecords' => 4,
 			},
 		},
 	],

@@ -3,22 +3,20 @@ my $add = 'http://' . $ENV{'MY_VM'} .
 my $mod = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/modify_nodegroup.php';
 my $del = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/delete_nodegroup.php';
-my $set = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/set_order.php';
+	'/nodegroups/api/v2/r/delete_nodegroup.php';
 my $get = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/get_nodes.php';
+	'/nodegroups/api/v2/r/nodes/get_counts.php';
 
 $TESTS = [
 
 {
-	'description' => 'v2/r/get_nodes.php - Extra fields',
+	'description' => 'v2/r/nodes/get_counts.php - Extra fields',
 	'uri' => $get,
 	'requests' => [
 		{
 			'json' => {
 				'foo' => 'test',
-				'nodegroup' => 'test',
+				'node' => 'test',
 			},
 		},
 	],
@@ -39,7 +37,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - No params',
+	'description' => 'v2/r/nodes/get_counts.php - No params',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -73,7 +71,7 @@ $TESTS = [
 				'records' => superbagof({
 					'inherited' => 0,
 					'node' => 'noparams1' . $UNIQUE,
-					'nodegroup' => 'noparams1' . $UNIQUE,
+					'nodegroups' => 1,
 				}),
 				'message' => ignore(),
 				'recordsReturned' => re('\d+'),
@@ -88,12 +86,12 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - Invalid nodegroup',
+	'description' => 'v2/r/nodes/get_counts.php - Invalid node',
 	'uri' => $get,
 	'requests' => [
 		{
 			'json' => {
-				'nodegroup' => 'space space',
+				'node' => 'space space',
 			},
 		},
 	],
@@ -114,7 +112,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - Good 1',
+	'description' => 'v2/r/nodes/get_counts.php - Good 1',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -128,7 +126,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'nodegroup' => 'good1' . $UNIQUE,
+				'node' => 'good1' . $UNIQUE,
 			},
 		},
 	],
@@ -150,7 +148,7 @@ $TESTS = [
 				'records' => [{
 					'inherited' => 0,
 					'node' => 'good1' . $UNIQUE,
-					'nodegroup' => 'good1' . $UNIQUE,
+					'nodegroups' => 1,
 				}],
 				'message' => ignore(),
 				'recordsReturned' => 1,
@@ -165,12 +163,12 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - no-exist 1',
+	'description' => 'v2/r/nodes/get_counts.php - no-exist 1',
 	'uri' => $get,
 	'requests' => [
 		{
 			'json' => {
-				'nodegroup' => 'noexist' . $UNIQUE,
+				'node' => 'noexist' . $UNIQUE,
 			},
 		},
 	],
@@ -191,13 +189,13 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - No exist 2',
+	'description' => 'v2/r/nodes/get_counts.php - No exist 2',
 	'requests' => [
 		{
 			'uri' => $add,
 			'json' => {
 				'description' => 'foobar',
-				'expression' => '',
+				'expression' => 'exist2' . $UNIQUE,
 				'nodegroup' => 'exist2' . $UNIQUE,
 			},
 		},
@@ -205,7 +203,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'nodegroup' => 'noexist2' . $UNIQUE,
+				'node' => 'noexist2' . $UNIQUE,
 			},
 		},
 	],
@@ -214,7 +212,7 @@ $TESTS = [
 			'body' => {
 				'details' => {
 					'description' => 'foobar',
-					'expression' => '',
+					'expression' => 'exist2' . $UNIQUE,,
 					'nodegroup' => 'exist2' . $UNIQUE,
 				},
 				'message' => ignore(),
@@ -238,7 +236,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - Good 3',
+	'description' => 'v2/r/nodes/get_counts.php - Good 3',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -261,10 +259,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'nodegroup' => [
-					'good3a' . $UNIQUE,
-					'good3b' . $UNIQUE,
-				],
+				'node' => 'good3a' . $UNIQUE,
 			},
 		}
 	],
@@ -295,33 +290,25 @@ $TESTS = [
 
 		{
 			'body' => {
-				'records' => bag(
-					{
+				'records' => [{
 					'inherited' => 0,
 					'node' => 'good3a' . $UNIQUE,
-					'nodegroup' => 'good3b' . $UNIQUE,
-					},
-
-					{
-					'inherited' => 0,
-					'node' => 'good3a' . $UNIQUE,
-					'nodegroup' => 'good3a' . $UNIQUE,
-					},
-				),
+					'nodegroups' => 2,
+				}],
 				'message' => ignore(),
-				'recordsReturned' => 2,
+				'recordsReturned' => 1,
 				'sortDir' => 'asc',
 				'sortField' => 'node',
 				'startIndex' => 0,
 				'status' => 200,
-				'totalRecords' => 2,
+				'totalRecords' => 1,
 			},
 		},
 	],
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - Good 4',
+	'description' => 'v2/r/nodes/get_counts.php - Good 4',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -335,7 +322,7 @@ $TESTS = [
 		{
 			'uri' => $get,
 			'json' => {
-				'nodegroup_re' => $UNIQUE,
+				'node_re' => $UNIQUE,
 			},
 		}
 	],
@@ -357,7 +344,7 @@ $TESTS = [
 				'records' => superbagof({
 					'inherited' => 0,
 					'node' => 'good4' . $UNIQUE,
-					'nodegroup' => 'good4' . $UNIQUE,
+					'nodegroups' => 1,
 				}),
 				'message' => ignore(),
 				'recordsReturned' => re('\d+'),
@@ -372,28 +359,30 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_nodes.php - Good 5',
+	'description' => 'v2/r/nodes/get_counts.php - Good 5',
 	'requests' => [
 		{
 			'uri' => $add,
 			'json' => {
-				'description' => 'good5' . $UNIQUE,
-				'expression' => 'good5' . $UNIQUE,
-				'nodegroup' => 'good5' . $UNIQUE,
+				'description' => 'good5a' . $UNIQUE,
+				'expression' => 'good5a' . $UNIQUE,
+				'nodegroup' => 'good5a' . $UNIQUE,
 			},
 		},
 
 		{
-			'uri' => $del,
+			'uri' => $add,
 			'json' => {
-				'nodegroup' => 'good5' . $UNIQUE,
+				'description' => 'good5a' . $UNIQUE,
+				'expression' => '@good5a' . $UNIQUE,
+				'nodegroup' => 'good5b' . $UNIQUE,
 			},
 		},
 
 		{
 			'uri' => $get,
 			'json' => {
-				'nodegroup' => 'good5' . $UNIQUE,
+				'node' => 'good5a' . $UNIQUE,
 			},
 		}
 	],
@@ -401,9 +390,9 @@ $TESTS = [
 		{
 			'body' => {
 				'details' => {
-					'description' => 'good5' . $UNIQUE,
-					'expression' => 'good5' . $UNIQUE,
-					'nodegroup' => 'good5' . $UNIQUE,
+					'description' => 'good5a' . $UNIQUE,
+					'expression' => 'good5a' . $UNIQUE,
+					'nodegroup' => 'good5a' . $UNIQUE,
 				},
 				'message' => ignore(),
 				'status' => 201,
@@ -412,216 +401,30 @@ $TESTS = [
 
 		{
 			'body' => {
-				'details' => any({}, []),
+				'details' => {
+					'description' => 'good5a' . $UNIQUE,
+					'expression' => '@good5a' . $UNIQUE,
+					'nodegroup' => 'good5b' . $UNIQUE,
+				},
 				'message' => ignore(),
-				'status' => 200,
+				'status' => 201,
 			},
 		},
 
 		{
 			'body' => {
-				'records' => any({}, []),
+				'records' => [{
+					'inherited' => 1,
+					'node' => 'good5a' . $UNIQUE,
+					'nodegroups' => 2,
+				}],
 				'message' => ignore(),
-				'recordsReturned' => 0,
+				'recordsReturned' => 1,
 				'sortDir' => 'asc',
 				'sortField' => 'node',
 				'startIndex' => 0,
 				'status' => 200,
-				'totalRecords' => 0,
-			},
-		},
-	],
-},
-
-{
-	'description' => 'v2/r/get_nodes.php - Good 6',
-	'requests' => [
-		{
-			'uri' => $add,
-			'json' => {
-				'description' => 'good6a' . $UNIQUE,
-				'expression' => 'good6' . $UNIQUE,
-				'nodegroup' => 'good6a' . $UNIQUE,
-			},
-		},
-
-		{
-			'uri' => $add,
-			'json' => {
-				'description' => 'good6b' . $UNIQUE,
-				'expression' => 'good6' . $UNIQUE,
-				'nodegroup' => 'good6b' . $UNIQUE,
-			},
-		},
-
-		{
-			'uri' => $get,
-			'json' => {
-				'app' => 'good6' . $UNIQUE,
-				'node' => 'good6' . $UNIQUE,
-			},
-		}
-	],
-	'responses' => [
-		{
-			'body' => {
-				'details' => {
-					'description' => 'good6a' . $UNIQUE,
-					'expression' => 'good6' . $UNIQUE,
-					'nodegroup' => 'good6a' . $UNIQUE,
-				},
-				'message' => ignore(),
-				'status' => 201,
-			},
-		},
-
-		{
-			'body' => {
-				'details' => {
-					'description' => 'good6b' . $UNIQUE,
-					'expression' => 'good6' . $UNIQUE,
-					'nodegroup' => 'good6b' . $UNIQUE,
-				},
-				'message' => ignore(),
-				'status' => 201,
-			},
-		},
-
-		{
-			'body' => {
-				'records' => [
-					{
-					'app' => 'good6' . $UNIQUE,
-					'inherited' => 0,
-					'node' => 'good6' . $UNIQUE,
-					'nodegroup' => 'good6a' . $UNIQUE,
-					'order' => 100,
-					},
-
-					{
-					'app' => 'good6' . $UNIQUE,
-					'inherited' => 0,
-					'node' => 'good6' . $UNIQUE,
-					'nodegroup' => 'good6b' . $UNIQUE,
-					'order' => 100,
-					},
-				],
-				'message' => ignore(),
-				'recordsReturned' => 2,
-				'sortDir' => 'asc',
-				'sortField' => 'node',
-				'startIndex' => 0,
-				'status' => 200,
-				'totalRecords' => 2,
-			},
-		},
-	],
-},
-
-{
-	'description' => 'v2/r/get_nodes.php - Good 7',
-	'requests' => [
-		{
-			'uri' => $add,
-			'json' => {
-				'description' => 'good7a' . $UNIQUE,
-				'expression' => 'good7' . $UNIQUE,
-				'nodegroup' => 'good7a' . $UNIQUE,
-			},
-		},
-
-		{
-			'uri' => $add,
-			'json' => {
-				'description' => 'good7b' . $UNIQUE,
-				'expression' => 'good7' . $UNIQUE,
-				'nodegroup' => 'good7b' . $UNIQUE,
-			},
-		},
-
-		{
-			'uri' => $set,
-			'json' => {
-				'app' => 'good7' . $UNIQUE,
-				'nodegroup' => 'good7b' . $UNIQUE,
-				'order' => 1,
-			},
-		},
-
-		{
-			'uri' => $get,
-			'get' => {
-				'sortField' => 'order',
-			},
-			'json' => {
-				'app' => 'good7' . $UNIQUE,
-				'node' => 'good7' . $UNIQUE,
-			},
-		}
-	],
-	'responses' => [
-		{
-			'body' => {
-				'details' => {
-					'description' => 'good7a' . $UNIQUE,
-					'expression' => 'good7' . $UNIQUE,
-					'nodegroup' => 'good7a' . $UNIQUE,
-				},
-				'message' => ignore(),
-				'status' => 201,
-			},
-		},
-
-		{
-			'body' => {
-				'details' => {
-					'description' => 'good7b' . $UNIQUE,
-					'expression' => 'good7' . $UNIQUE,
-					'nodegroup' => 'good7b' . $UNIQUE,
-				},
-				'message' => ignore(),
-				'status' => 201,
-			},
-		},
-
-		{
-			'body' => {
-				'details' => {
-					'app' => 'good7' . $UNIQUE,
-					'nodegroup' => 'good7b' . $UNIQUE,
-					'order' => 1,
-				},
-				'message' => ignore(),
-				'status' => 200,
-			},
-		},
-
-		{
-			'body' => {
-				'records' => [
-					{
-					'app' => 'good7' . $UNIQUE,
-					'inherited' => 0,
-					'node' => 'good7' . $UNIQUE,
-					'nodegroup' => 'good7b' . $UNIQUE,
-					'order' => 1,
-					},
-
-					{
-					'app' => 'good7' . $UNIQUE,
-					'inherited' => 0,
-					'node' => 'good7' . $UNIQUE,
-					'nodegroup' => 'good7a' . $UNIQUE,
-					'order' => 100,
-					},
-				],
-				'message' => ignore(),
-				'recordsReturned' => 2,
-				'sortDir' => 'asc',
-				'sortField' => 'order',
-				'startIndex' => 0,
-				'status' => 200,
-				'totalRecords' => 2,
+				'totalRecords' => 1,
 			},
 		},
 	],

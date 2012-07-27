@@ -5,12 +5,12 @@ my $mod = 'http://' . $ENV{'MY_VM'} .
 my $rm = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/remove_order.php';
 my $get = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/get_orderings.php';
+	'/nodegroups/api/v2/r/order/get_orderings.php';
 
 $TESTS = [
 
 {
-	'description' => 'v2/r/get_orderings.php - Missing fields',
+	'description' => 'v2/r/order/get_orderings.php - Missing fields',
 	'uri' => $rm,
 	'requests' => [
 		{
@@ -31,7 +31,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Extra fields',
+	'description' => 'v2/r/order/get_orderings.php - Extra fields',
 	'uri' => $rm,
 	'requests' => [
 		{
@@ -54,7 +54,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Missing few',
+	'description' => 'v2/r/order/get_orderings.php - Missing few',
 	'uri' => $rm,
 	'requests' => [
 		{
@@ -75,7 +75,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Invalid nodegroup',
+	'description' => 'v2/r/order/get_orderings.php - Invalid nodegroup',
 	'uri' => $rm,
 	'requests' => [
 		{
@@ -97,7 +97,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Invalid app (length)',
+	'description' => 'v2/r/order/get_orderings.php - Invalid app (length)',
 	'uri' => $rm,
 	'requests' => [
 		{
@@ -119,7 +119,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Good 1',
+	'description' => 'v2/r/order/get_orderings.php - Good 1',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -191,7 +191,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Good 2',
+	'description' => 'v2/r/order/get_orderings.php - Good 2',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -264,7 +264,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Good 3',
+	'description' => 'v2/r/order/get_orderings.php - Good 3',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -348,7 +348,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Never added',
+	'description' => 'v2/r/order/get_orderings.php - Never added',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -396,7 +396,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - add remove add remove',
+	'description' => 'v2/r/order/get_orderings.php - add remove add remove',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -518,7 +518,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Good 7',
+	'description' => 'v2/r/order/get_orderings.php - Good 7',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -637,7 +637,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - no-exist 1',
+	'description' => 'v2/r/order/get_orderings.php - no-exist 1',
 	'uri' => $get,
 	'requests' => [
 		{
@@ -664,7 +664,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Good 4',
+	'description' => 'v2/r/order/get_orderings.php - Good 4',
 	'requests' => [
 		{
 			'uri' => $add,
@@ -760,7 +760,7 @@ $TESTS = [
 },
 
 {
-	'description' => 'v2/r/get_orderings.php - Good 8',
+	'description' => 'v2/r/order/get_orderings.php - Good 8',
 	'requests' => [
 		{
 			'uri' => $add,
