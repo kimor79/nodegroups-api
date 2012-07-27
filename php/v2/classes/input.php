@@ -17,6 +17,10 @@ class NodegroupsAPIV2Input extends APIProducerV2Input {
 		return $ngexpr->sanitizeExpression($input);
 	}
 
+	protected function sanitizeInput_node($input) {
+		return $input;
+	}
+
 	protected function sanitizeInput_nodegroup_name($input) {
 		return $this->sanitizeInput_tolower($input);
 	}
@@ -32,6 +36,14 @@ class NodegroupsAPIV2Input extends APIProducerV2Input {
 	protected function validateInput_expression($input) {
 		global $ngexpr;
 		return $ngexpr->validateExpression($input);
+	}
+
+	protected function validateInput_node($input) {
+		if(preg_match('{^[a-z0-9.:_/-]+$}i', $input)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	protected function validateInput_nodegroup_name($input) {
