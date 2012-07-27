@@ -9,6 +9,7 @@ include 'nodegroups/api/v2/includes/init_details.php';
 
 $defaults = array();
 $errors = array();
+$exists = array();
 $input = array();
 $optional = array();
 $output_params = array();
