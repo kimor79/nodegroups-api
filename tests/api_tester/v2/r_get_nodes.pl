@@ -4,6 +4,8 @@ my $mod = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/modify_nodegroup.php';
 my $del = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/w/delete_nodegroup.php';
+my $set = 'http://' . $ENV{'MY_VM'} .
+	'/nodegroups/api/v2/w/set_order.php';
 my $get = 'http://' . $ENV{'MY_VM'} .
 	'/nodegroups/api/v2/r/get_nodes.php';
 
@@ -426,6 +428,200 @@ $TESTS = [
 				'startIndex' => 0,
 				'status' => 200,
 				'totalRecords' => 0,
+			},
+		},
+	],
+},
+
+{
+	'description' => 'v2/r/get_nodes.php - Good 6',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good6a' . $UNIQUE,
+				'expression' => 'good6' . $UNIQUE,
+				'nodegroup' => 'good6a' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good6b' . $UNIQUE,
+				'expression' => 'good6' . $UNIQUE,
+				'nodegroup' => 'good6b' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $get,
+			'json' => {
+				'app' => 'good6' . $UNIQUE,
+				'node' => 'good6' . $UNIQUE,
+			},
+		}
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good6a' . $UNIQUE,
+					'expression' => 'good6' . $UNIQUE,
+					'nodegroup' => 'good6a' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good6b' . $UNIQUE,
+					'expression' => 'good6' . $UNIQUE,
+					'nodegroup' => 'good6b' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'records' => [
+					{
+					'app' => 'good6' . $UNIQUE,
+					'inherited' => 0,
+					'node' => 'good6' . $UNIQUE,
+					'nodegroup' => 'good6a' . $UNIQUE,
+					'order' => 100,
+					},
+
+					{
+					'app' => 'good6' . $UNIQUE,
+					'inherited' => 0,
+					'node' => 'good6' . $UNIQUE,
+					'nodegroup' => 'good6b' . $UNIQUE,
+					'order' => 100,
+					},
+				],
+				'message' => ignore(),
+				'recordsReturned' => 2,
+				'sortDir' => 'asc',
+				'sortField' => 'node',
+				'startIndex' => 0,
+				'status' => 200,
+				'totalRecords' => 2,
+			},
+		},
+	],
+},
+
+{
+	'description' => 'v2/r/get_nodes.php - Good 7',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good7a' . $UNIQUE,
+				'expression' => 'good7' . $UNIQUE,
+				'nodegroup' => 'good7a' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good7b' . $UNIQUE,
+				'expression' => 'good7' . $UNIQUE,
+				'nodegroup' => 'good7b' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $set,
+			'json' => {
+				'app' => 'good7' . $UNIQUE,
+				'nodegroup' => 'good7b' . $UNIQUE,
+				'order' => 1,
+			},
+		},
+
+		{
+			'uri' => $get,
+			'get' => {
+				'sortField' => 'order',
+			},
+			'json' => {
+				'app' => 'good7' . $UNIQUE,
+				'node' => 'good7' . $UNIQUE,
+			},
+		}
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good7a' . $UNIQUE,
+					'expression' => 'good7' . $UNIQUE,
+					'nodegroup' => 'good7a' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good7b' . $UNIQUE,
+					'expression' => 'good7' . $UNIQUE,
+					'nodegroup' => 'good7b' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'app' => 'good7' . $UNIQUE,
+					'nodegroup' => 'good7b' . $UNIQUE,
+					'order' => 1,
+				},
+				'message' => ignore(),
+				'status' => 200,
+			},
+		},
+
+		{
+			'body' => {
+				'records' => [
+					{
+					'app' => 'good7' . $UNIQUE,
+					'inherited' => 0,
+					'node' => 'good7' . $UNIQUE,
+					'nodegroup' => 'good7b' . $UNIQUE,
+					'order' => 1,
+					},
+
+					{
+					'app' => 'good7' . $UNIQUE,
+					'inherited' => 0,
+					'node' => 'good7' . $UNIQUE,
+					'nodegroup' => 'good7a' . $UNIQUE,
+					'order' => 100,
+					},
+				],
+				'message' => ignore(),
+				'recordsReturned' => 2,
+				'sortDir' => 'asc',
+				'sortField' => 'order',
+				'startIndex' => 0,
+				'status' => 200,
+				'totalRecords' => 2,
 			},
 		},
 	],
