@@ -74,6 +74,41 @@ class NodegroupsAPIV2DriverNodesMySQL extends APIProducerV2DriverMySQL {
 	}
 
 	/**
+	 * Search nodes
+	 * @param array $search (as built by buildQuery())
+	 * @return mixed array (which may be empty) of details or false
+	 */
+	public function getNodes($search) {
+		// TODO: stripAt
+
+		$output_fields = array(
+			'`inherited`',
+			'`node`',
+			'`nodegroup`',
+		);
+
+		$parsed = $this->parseQuery($search);
+		$select = array(
+			'_binds' => $parsed['binds'],
+			'_values' => $parsed['values'],
+			'from' => '`' . $this->prefix . 'nodes`',
+			'select' => implode(', ', $output_fields),
+			'where' => $parsed['where'],
+		);
+
+		$count = $this->select(array_merge($select, array(
+			'_one' => true,
+			'select' => 'COUNT(*) AS `count`',
+		)));
+
+		$this->count = $count['count'];
+
+		$select = array_merge($this->applyParameters(), $select);
+
+		return $this->select($select);
+	}
+
+	/**
 	 * Get the list of nodes for given nodegroup
 	 * @param string $nodegroup
 	 * @return array nodes, inherited
