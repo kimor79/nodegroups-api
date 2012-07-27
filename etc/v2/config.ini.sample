@@ -1,0 +1,76 @@
+; In each of the driver sections below, for mysql,
+; you can specify separate read-only vs read-write
+; databases, or leave out the ro/rw prefix if they
+; are one in the same.
+;
+; Example:
+;  ro_host = "rodb.mydomain.com"
+;  rw_host = "rwdb.mydomain.com"
+;
+; The following options are valid in a driver section
+; using MySQL. If not set, most will default to
+; php's mysqli defaults.
+;
+; The host to connect to.
+;host = ""
+;
+; The user to connect as
+;user= ""
+;
+; The password to connect with
+;password = ""
+;
+; The database name
+;database = ""
+;
+; Set this if the tables are prefixed; e.g.,
+;  prefix = "ng_"
+;prefix = ""
+;
+; Set this to a true value to include the query
+; in the error message
+;query_on_error = ''
+
+[consumer-v2_self]
+; If the nodegroups API is not in the root of
+; the webserver you can set a combination of
+; the following:
+;
+; The full URI of the API (if not on the same
+; web server and not at the root). This can also
+; be achieved by using base_url and base_urn; e.g.,
+;  base_uri = "http://nodegroups.com/nodegroups/api/"
+;base_uri = ""
+;
+; The URL of the API (if at the root of a
+; different web server); e.g.,
+;  base_uri = "http://nodegroups.com/"
+;base_url = ""
+;
+; The path to the API (if on the same web server); e.g.,
+;  base_urn = "/nodegroups/api/"
+;base_urn= ""
+
+[driver-v2_events]
+file = "nodegroups/api/v2/drivers/events-mysql.php"
+class = "NodegroupsAPIV2DriverEventsMySQL"
+
+query_on_error = true
+
+[driver-v2_nodegroups]
+file = "nodegroups/api/v2/drivers/nodegroups-mysql.php"
+class = "NodegroupsAPIV2DriverNodegroupsMySQL"
+
+query_on_error = true
+
+[driver-v2_nodes]
+file = "nodegroups/api/v2/drivers/nodes-mysql.php"
+class = "NodegroupsAPIV2DriverNodesMySQL"
+
+query_on_error = true
+
+[driver-v2_order]
+file = "nodegroups/api/v2/drivers/order-mysql.php"
+class = "NodegroupsAPIV2DriverOrderMySQL"
+
+query_on_error = true
