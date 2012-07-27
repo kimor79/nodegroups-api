@@ -17,6 +17,63 @@ class NodegroupsAPIV2DriverNodesMySQL extends APIProducerV2DriverMySQL {
 	}
 
 	/**
+	 * Get nodegroup counts
+	 * @param array $search (as built by buildQuery())
+	 * @return mixed array (which may be empty) of details or false
+	 */
+	public function getNodegroupCounts($search) {
+		$having = array(
+			'binds' => '',
+			'values' => array(),
+			'where' => '',
+		);
+		$output_fields = array(
+			'COUNT(IF(`inherited`, 1, NULL)) AS `inherited`',
+			'`node`',
+			'COUNT(`nodegroup`) AS `nodegroups`',
+		);
+		$where = array(
+			'binds' => '',
+			'values' => array(),
+			'where' => '',
+		);
+
+		if(array_key_exists('node', $search)) {
+			$where = $this->parseQuery(array(
+				'node' => $search['node']));
+			unset($search['nodes']);
+		}
+
+		$having = $this->parseQuery($search);
+
+		$select = array(
+			'_binds' => $where['binds'] . $having['binds'],
+			'_values' => array_merge($where['values'],
+				$having['values']),
+			'from' => '`' . $this->prefix . 'nodes`',
+			'group' => '`node`',
+			'having' => $having['where'],
+			'select' => implode(', ', $output_fields),
+			'where' => $where['where'],
+		);
+
+		// TODO: Improve performance of this sectio. E.g., with
+		// SELECT COUNT(*) from (this query) as `temp`
+		// rather than running the entire query, retrieving the
+		// dataset, and then counting the rows.
+		$count = $this->select($select);
+		if(is_array($count)) {
+			$this->count = count($count);
+		} else {
+			$this->count = 0;
+		}
+
+		$select = array_merge($this->applyParameters(), $select);
+
+		return $this->select($select);
+	}
+
+	/**
 	 * Get the list of nodes for given nodegroup
 	 * @param string $nodegroup
 	 * @return array nodes, inherited
