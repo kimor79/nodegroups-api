@@ -484,4 +484,60 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v2/r/nodegroups/get_history.php - Good 6',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good6' . $UNIQUE,
+				'expression' => "a\nb",
+				'nodegroup' => 'good6' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $get,
+			'json' => {
+				'nodegroup' => 'good6' . $UNIQUE,
+			},
+		}
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good6' . $UNIQUE,
+					'expression' => "a\nb",
+					'nodegroup' => 'good6' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'records' => [{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good6" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,2 @@' .
+						"\n+a\n+b",
+					'nodegroup' => 'good6' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+				}],
+				'message' => ignore(),
+				'recordsReturned' => 1,
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
+				'startIndex' => 0,
+				'status' => 200,
+				'totalRecords' => 1,
+			},
+		},
+	],
+},
+
 ];

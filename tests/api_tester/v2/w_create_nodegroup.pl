@@ -477,4 +477,31 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v2/w/create_nodegroup.php - Good 6',
+	'uri' => $uri,
+	'requests' => [
+		{
+			'json' => {
+				'description' => 'good6' . $UNIQUE,
+				'expression' => "a\n\n\nb  , c",
+				'nodegroup' => 'good6' . $UNIQUE,
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good6' . $UNIQUE,
+					'expression' => "a\n\n\nb  , c",
+					'nodegroup' => 'good6' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+	],
+},
+
 ];

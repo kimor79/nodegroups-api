@@ -29,7 +29,6 @@ $required = array(
 	'nodegroup' => 'nodegroup_name',
 );
 $sanitize = array(
-	'expression' => 'expression',
 	'nodegroup' => 'nodegroup_name',
 );
 $time = time();
