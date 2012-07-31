@@ -10,6 +10,7 @@ include 'nodegroups/api/v2/includes/init_records.php';
 
 $data = array();
 $default_params = array(
+	'listKey' => 'nodegroup',
 	'sortField' => 'node',
 );
 $defaults = array();
