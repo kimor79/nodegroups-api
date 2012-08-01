@@ -27,6 +27,7 @@ $sanitize = array(
 	'expression' => 'expression',
 );
 $sort = array();
+$sort_dir = SORT_ASC;
 $total = 0;
 
 list($input, $params) = $api['input']->getInput();
