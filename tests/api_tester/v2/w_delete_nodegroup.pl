@@ -49,6 +49,27 @@ $TESTS = [
 },
 
 {
+	'description' => 'v2/w/delete_nodegroup.php - GET',
+	'uri' => $del,
+	'requests' => [
+		{
+			'get' => {
+				'nodegroup' => 'test',
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
+{
 	'description' => 'v2/w/delete_nodegroup.php - Missing few',
 	'uri' => $del,
 	'requests' => [

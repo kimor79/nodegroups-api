@@ -49,6 +49,29 @@ $TESTS = [
 },
 
 {
+	'description' => 'v2/w/create_nodegroup.php - GET',
+	'uri' => $uri,
+	'requests' => [
+		{
+			'get' => {
+				'description' => 'test',
+				'expression' => 'test',
+				'nodegroup' => 'test',
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
+{
 	'description' => 'v2/w/create_nodegroup.php - Missing few',
 	'uri' => $uri,
 	'requests' => [

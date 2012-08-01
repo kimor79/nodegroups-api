@@ -50,6 +50,28 @@ $TESTS = [
 },
 
 {
+	'description' => 'v2/w/set_order.php - GET',
+	'uri' => $mod,
+	'requests' => [
+		{
+			'get' => {
+				'app' => 'test',
+				'nodegroup' => 'test',
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => any({}, []),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
+{
 	'description' => 'v2/w/set_order.php - Missing few',
 	'uri' => $mod,
 	'requests' => [

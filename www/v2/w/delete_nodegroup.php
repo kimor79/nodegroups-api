@@ -31,7 +31,7 @@ $sanitize = array(
 );
 $time = time();
 
-list($input, $params) = $api['input']->getInput();
+list($input, $params) = $api['input']->getInput(array('input' => 'PJ'));
 
 $output_params = array_intersect_key($params, $api['output']->getParameters());
 $errors = $api['output']->setParameters($output_params);

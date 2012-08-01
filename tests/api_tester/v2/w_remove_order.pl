@@ -52,6 +52,28 @@ $TESTS = [
 },
 
 {
+	'description' => 'v2/w/remove_order.php - GET',
+	'uri' => $rm,
+	'requests' => [
+		{
+			'get' => {
+				'app' => 'test',
+				'nodegroup' => 'test',
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => ignore(),
+				'message' => re('Missing'),
+				'status' => 400,
+			},
+		},
+	],
+},
+
+{
 	'description' => 'v2/w/remove_order.php - Missing few',
 	'uri' => $rm,
 	'requests' => [
