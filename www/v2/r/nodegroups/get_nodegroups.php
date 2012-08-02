@@ -23,6 +23,7 @@ $optional = array(
 	'description' => '_array_',
 	'description_re' => '_array_',
 	'expression' => '_array_expression',
+	'expression_re' => '_array_',
 	'nodegroup' => '_array_nodegroup_name',
 	'nodegroup_re' => '_array_',
 );
