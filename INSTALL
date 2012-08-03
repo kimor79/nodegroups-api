@@ -1,0 +1,27 @@
+The nodegroups API requires the following:
+
+* PHP (tested with 5.3)
+  * mongo (for generating unique IDs)
+  * pcre
+  * xdiff
+* MySQL (tested with 5.5)
+* A webserver (tested with Apache 2.2)
+* api_consumer (https://github.com/kimor79/api_consumer)
+* api_producer (https://github.com/kimor79/api_consumer)
+* api_producer_driver-mysql
+   (https://github.com/kimor79/api_producer_driver-mysql)
+
+Copy the files in php/ to <php include path>/nodegroups/api/. E.g.:
+  mkdir /usr/local/include/php/nodegroups
+  cp -R php /usr/local/include/php/nodegroups/api
+
+Copy the files in www/ to a path accessible by the webserver. E.g.:
+  mkdir /usr/local/www/nodegroups
+  cp -R www /usr/local/www/nodegroups/api
+
+Copy (and modify as needed) the config file from etc/. E.g.:
+  mkdir /usr/local/etc/nodegroups
+  cp etc/config.ini.sample /usr/local/etc/nodegroups/api.ini
+
+Ensure $_SERVER['NODEGROUPS_API_CONFIG_FILE'] is defined. E.g., in Apache:
+  SetEnv NODEGROUPS_API_CONFIG_FILE '/usr/local/etc/nodegroups/api.ini'
