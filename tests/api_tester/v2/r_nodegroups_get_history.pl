@@ -540,4 +540,93 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v2/r/nodegroups/get_history.php - Good 7',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good7' . $UNIQUE,
+				'expression' => "a\nb",
+				'nodegroup' => 'good7' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $mod,
+			'json' => {
+				'description' => 'good7' . $UNIQUE,
+				'expression' => "a\nb\nc",
+				'nodegroup' => 'good7' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $get,
+			'json' => {
+				'nodegroup' => 'good7' . $UNIQUE,
+			},
+		}
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good7' . $UNIQUE,
+					'expression' => "a\nb",
+					'nodegroup' => 'good7' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good7' . $UNIQUE,
+					'expression' => "a\nb\nc",
+					'nodegroup' => 'good7' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 200,
+			},
+		},
+
+		{
+			'body' => {
+				'records' => [
+					{
+					'action' => 'MODIFY',
+					'description' => '',
+					'expression' => '@@ -1,2 +1,3 @@' .
+						"\n a\n b\n+c",
+					'nodegroup' => 'good7' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+
+					{
+					'action' => 'CREATE',
+					'description' => '@@ -0,0 +1,1 @@' .
+						"\n+good7" . $UNIQUE,
+					'expression' => '@@ -0,0 +1,2 @@' .
+						"\n+a\n+b",
+					'nodegroup' => 'good7' . $UNIQUE,
+					'timestamp' => re('\d+'),
+					'user' => ignore(),
+					},
+				],
+				'message' => ignore(),
+				'recordsReturned' => 2,
+				'sortDir' => 'desc',
+				'sortField' => 'timestamp',
+				'startIndex' => 0,
+				'status' => 200,
+				'totalRecords' => 2,
+			},
+		},
+	],
+},
+
 ];

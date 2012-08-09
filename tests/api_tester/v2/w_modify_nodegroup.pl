@@ -667,4 +667,52 @@ $TESTS = [
 	],
 },
 
+{
+	'description' => 'v2/w/modify_nodegroup.php - Good 7',
+	'requests' => [
+		{
+			'uri' => $add,
+			'json' => {
+				'description' => 'good7' . $UNIQUE,
+				'expression' => '',
+				'nodegroup' => 'good7' . $UNIQUE,
+			},
+		},
+
+		{
+			'uri' => $mod,
+			'json' => {
+				'description' => 'good7' . $UNIQUE,
+				'expression' => "a\n\n\nb  , c",
+				'nodegroup' => 'good7' . $UNIQUE,
+			},
+		},
+	],
+	'responses' => [
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good7' . $UNIQUE,
+					'expression' => '',
+					'nodegroup' => 'good7' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 201,
+			},
+		},
+
+		{
+			'body' => {
+				'details' => {
+					'description' => 'good7' . $UNIQUE,
+					'expression' => "a\n\n\nb  , c",
+					'nodegroup' => 'good7' . $UNIQUE,
+				},
+				'message' => ignore(),
+				'status' => 200,
+			},
+		},
+	],
+},
+
 ];

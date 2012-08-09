@@ -38,7 +38,6 @@ $required = array(
 	'nodegroup' => 'nodegroup_name',
 );
 $sanitize = array(
-	'expression' => 'expression',
 	'force' => 'bool_false',
 	'nodegroup' => 'nodegroup_name',
 );
