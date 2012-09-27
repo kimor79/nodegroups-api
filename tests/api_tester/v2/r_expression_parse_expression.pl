@@ -1,7 +1,5 @@
-my $add = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/create_nodegroup.php';
-my $parse = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/expression/parse_expression.php';
+my $add = $ENV{'BASE_URI'} . '/v2/w/create_nodegroup.php';
+my $parse = $ENV{'BASE_URI'} . '/v2/r/expression/parse_expression.php';
 
 $TESTS = [
 

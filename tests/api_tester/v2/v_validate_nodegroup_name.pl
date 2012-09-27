@@ -1,5 +1,4 @@
-my $uri = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/v/validate_nodegroup_name.php';
+my $uri = $ENV{'BASE_URI'} . '/v2/v/validate_nodegroup_name.php';
 
 $TESTS = [
 

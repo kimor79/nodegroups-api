@@ -1,9 +1,6 @@
-my $add = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/create_nodegroup.php';
-my $del = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/delete_nodegroup.php';
-my $get = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/r/nodegroups/get_nodegroup.php';
+my $add = $ENV{'BASE_URI'} . '/v2/w/create_nodegroup.php';
+my $del = $ENV{'BASE_URI'} . '/v2/w/delete_nodegroup.php';
+my $get = $ENV{'BASE_URI'} . '/v2/r/nodegroups/get_nodegroup.php';
 
 $TESTS = [
 

@@ -1,9 +1,6 @@
-my $add = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/create_nodegroup.php';
-my $mod = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/set_order.php';
-my $rm = 'http://' . $ENV{'MY_VM'} .
-	'/nodegroups/api/v2/w/remove_order.php';
+my $add = $ENV{'BASE_URI'} . '/v2/w/create_nodegroup.php';
+my $mod = $ENV{'BASE_URI'} . '/v2/w/set_order.php';
+my $rm = $ENV{'BASE_URI'} . '/v2/w/remove_order.php';
 
 $TESTS = [
 
