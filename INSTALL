@@ -1,6 +1,7 @@
 The nodegroups API requires the following:
 
-* PHP (tested with 5.3)
+* PHP (tested with 5.3, 5.4)
+  * hash
   * mongo (for generating unique IDs)
   * pcre
   * xdiff
