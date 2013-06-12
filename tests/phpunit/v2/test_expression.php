@@ -1106,6 +1106,31 @@ c';
 
 		$this->assertFalse($got, $expr);
 	}
+
+	public function testValidateExpression11() {
+		$expr = 'a
+b';
+		$got = $this->parser->validateExpression($expr);
+
+		$this->assertTrue($got, $expr);
+	}
+
+	public function testValidateExpression12() {
+		$expr = '&intersect(a
+b)';
+		$got = $this->parser->validateExpression($expr);
+
+		$this->assertTrue($got, $expr);
+	}
+
+	public function testValidateExpression13() {
+		$expr = '&intersect(a
+b
+)';
+		$got = $this->parser->validateExpression($expr);
+
+		$this->assertTrue($got, $expr);
+	}
 }
 
 ?>

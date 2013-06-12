@@ -280,6 +280,8 @@ class NodegroupsAPIV2Expression {
 	 * @return string
 	 */
 	public function sanitizeExpression($expr) {
+		$expr = str_replace("(\n", '(', $expr);
+		$expr = str_replace("\n)", ')', $expr);
 		$expr = str_replace("\n", ',', $expr);
 		$expr = preg_replace('/\s+/', ',', $expr);
 		$expr = preg_replace('/,,+/', ',', $expr);
